@@ -90,7 +90,6 @@ C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.API\obj\Debug\net8.0\refint\Boo
 C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.API\obj\Debug\net8.0\BookLibwithSub.API.pdb
 C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.API\obj\Debug\net8.0\BookLibwithSub.API.genruntimeconfig.cache
 C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.API\obj\Debug\net8.0\ref\BookLibwithSub.API.dll
-C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.API\bin\Debug\net8.0\AutoMapper.dll
 C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.API\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
 C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.API\bin\Debug\net8.0\BookLibwithSub.Repo.dll
