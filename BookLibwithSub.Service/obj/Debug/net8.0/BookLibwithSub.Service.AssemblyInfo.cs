@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BookLibwithSub.Service")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c860c6a14b0cf6d656f8b15ba126eeceadd18d50")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+61af71bbf9cab2684c73f6856da8b487a53556cc")]
 [assembly: System.Reflection.AssemblyProductAttribute("BookLibwithSub.Service")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BookLibwithSub.Service")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

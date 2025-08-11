@@ -1,37 +1,38 @@
-# ------------------------------
-# OS noise
-# ------------------------------
+# OS
 .DS_Store
 Thumbs.db
 ehthumbs.db
 Icon?
 
-# ------------------------------
-# Visual Studio / MSBuild
-# ------------------------------
+# IDE / tooling
 .vs/
+.idea/
 *.suo
 *.user
-*.userosscache
 *.rsuser
 *.sln.docstates
+*.DotSettings.user
+*.sln.iml
 
-[Bb]in/
-[Oo]bj/
-[Ll]og/
-[Ll]ogs/
+# Build output (recursive, any depth)
+**/[Bb]in/
+**/[Oo]bj/
+**/[Ll]og/
+**/[Ll]ogs/
+**/out/
+**/app.publish/
 [Tt]est[Rr]esults/
 [Aa]rtifacts/
-out/
-app.publish/
-*.cache
+
+# Debug symbols & caches
 *.pdb
 *.mdb
 *.ilk
 *.ipdb
 *.iobj
+*.cache
 
-# Build configs
+# Configurations
 [Dd]ebug/
 [Rr]elease/
 x64/
@@ -39,9 +40,7 @@ x86/
 [Aa][Rr][Mm]/
 [Aa][Rr][Mm]64/
 
-# ------------------------------
-# .NET / NuGet
-# ------------------------------
+# NuGet
 project.lock.json
 project.fragment.lock.json
 artifacts/
@@ -54,9 +53,7 @@ artifacts/
 packages/
 .nuget/NuGet.Config
 
-# ------------------------------
-# Test/coverage artifacts
-# ------------------------------
+# Test/coverage
 *.trx
 *.coverage
 *.coveragexml
@@ -67,53 +64,30 @@ lcov.info
 TestResult.xml
 BenchmarkDotNet.Artifacts/
 
-# ------------------------------
-# Rider / ReSharper / JetBrains
-# ------------------------------
-.idea/
-*.sln.iml
-_ReSharper*/
-*.[Rr]e[Ss]harper
-*.DotSettings.user
-
-# ------------------------------
-# VS Code (keep workspace clean; opt-in later if needed)
-# ------------------------------
+# VS Code
 .vscode/
 
-# ------------------------------
-# ASP.NET Core specifics
-# ------------------------------
-# Keep appsettings.json, ignore local/dev secrets
+# ASP.NET Core
 appsettings.*.Development.json
 appsettings.*.Local.json
 appsettings.*.Secret.json
 secrets.json
-# IIS publish artifacts
 **/Properties/ServiceDependencies/**/
 **/Properties/ServiceSettings/**/
 
-# ------------------------------
 # EF Core
-# ------------------------------
-# IMPORTANT: Do NOT ignore Migrations/ (keep it in source control)
-# (No rules here on purpose.)
+# (Intentionally keep Migrations/ tracked)
 
-# ------------------------------
-# Front-end (if you wire assets under wwwroot)
-# ------------------------------
+# Front-end (optional)
 node_modules/
 **/node_modules/
 **/wwwroot/lib/
 **/wwwroot/dist/
 **/wwwroot/build/
 **/wwwroot/**/bundles/
-# Optional: uncomment if source maps should not be tracked
-# **/wwwroot/**/*.map
+# **/wwwroot/**/*.map  # uncomment if desired
 
-# ------------------------------
-# Containers / Local tooling
-# ------------------------------
+# Containers / misc
 docker-compose.override.yml
 .env
 *.swp
