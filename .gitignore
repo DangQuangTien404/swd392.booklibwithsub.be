@@ -1,55 +1,121 @@
-# Prerequisites
-*.d
+# ------------------------------
+# OS noise
+# ------------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+# ------------------------------
+# Visual Studio / MSBuild
+# ------------------------------
+.vs/
+*.suo
+*.user
+*.userosscache
+*.rsuser
+*.sln.docstates
 
-# Linker output
-*.ilk
-*.map
-*.exp
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-
-# Debug files
-*.dSYM/
-*.su
-*.idb
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+[Tt]est[Rr]esults/
+[Aa]rtifacts/
+out/
+app.publish/
+*.cache
 *.pdb
+*.mdb
+*.ilk
+*.ipdb
+*.iobj
 
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+# Build configs
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
 
-# debug information files
-*.dwo
+# ------------------------------
+# .NET / NuGet
+# ------------------------------
+project.lock.json
+project.fragment.lock.json
+artifacts/
+*.nuget.props
+*.nuget.targets
+*.nupkg
+*.snupkg
+*.nuspec
+.packages/
+packages/
+.nuget/NuGet.Config
+
+# ------------------------------
+# Test/coverage artifacts
+# ------------------------------
+*.trx
+*.coverage
+*.coveragexml
+.coverage/
+coverage/
+coverage*.json
+lcov.info
+TestResult.xml
+BenchmarkDotNet.Artifacts/
+
+# ------------------------------
+# Rider / ReSharper / JetBrains
+# ------------------------------
+.idea/
+*.sln.iml
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# ------------------------------
+# VS Code (keep workspace clean; opt-in later if needed)
+# ------------------------------
+.vscode/
+
+# ------------------------------
+# ASP.NET Core specifics
+# ------------------------------
+# Keep appsettings.json, ignore local/dev secrets
+appsettings.*.Development.json
+appsettings.*.Local.json
+appsettings.*.Secret.json
+secrets.json
+# IIS publish artifacts
+**/Properties/ServiceDependencies/**/
+**/Properties/ServiceSettings/**/
+
+# ------------------------------
+# EF Core
+# ------------------------------
+# IMPORTANT: Do NOT ignore Migrations/ (keep it in source control)
+# (No rules here on purpose.)
+
+# ------------------------------
+# Front-end (if you wire assets under wwwroot)
+# ------------------------------
+node_modules/
+**/node_modules/
+**/wwwroot/lib/
+**/wwwroot/dist/
+**/wwwroot/build/
+**/wwwroot/**/bundles/
+# Optional: uncomment if source maps should not be tracked
+# **/wwwroot/**/*.map
+
+# ------------------------------
+# Containers / Local tooling
+# ------------------------------
+docker-compose.override.yml
+.env
+*.swp
+*.tmp
+*.log

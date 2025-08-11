@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "aEOPWB5AB+s=",
+  "dgSpecHash": "DNJhe7byUnY=",
   "success": true,
-  "projectFilePath": "C:\\Users\\dangq\\Desktop\\SWD\\SWD392.BookLibwithSub.API\\BookLibwithSub.Service\\BookLibwithSub.Service.csproj",
+  "projectFilePath": "C:\\Users\\dangq\\Desktop\\SWD\\SWD-BE\\BookLibwithSub.Service\\BookLibwithSub.Service.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\dangq\\.nuget\\packages\\automapper\\12.0.1\\automapper.12.0.1.nupkg.sha512",
     "C:\\Users\\dangq\\.nuget\\packages\\automapper.extensions.microsoft.dependencyinjection\\12.0.1\\automapper.extensions.microsoft.dependencyinjection.12.0.1.nupkg.sha512",

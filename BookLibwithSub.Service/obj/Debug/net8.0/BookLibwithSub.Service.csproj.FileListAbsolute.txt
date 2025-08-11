@@ -1,0 +1,13 @@
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\bin\Debug\net8.0\BookLibwithSub.Service.deps.json
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\bin\Debug\net8.0\BookLibwithSub.Service.dll
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\bin\Debug\net8.0\BookLibwithSub.Service.pdb
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\BookLibwithSub.Service.csproj.AssemblyReference.cache
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\BookLibwithSub.Service.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\BookLibwithSub.Service.AssemblyInfoInputs.cache
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\BookLibwithSub.Service.AssemblyInfo.cs
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\BookLibwithSub.Service.csproj.CoreCompileInputs.cache
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\BookLibwithSub.Service.sourcelink.json
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\BookLibwithSub.Service.dll
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\refint\BookLibwithSub.Service.dll
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\BookLibwithSub.Service.pdb
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\ref\BookLibwithSub.Service.dll

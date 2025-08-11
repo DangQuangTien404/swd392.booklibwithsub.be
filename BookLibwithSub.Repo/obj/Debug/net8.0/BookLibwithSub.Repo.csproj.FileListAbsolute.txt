@@ -1,0 +1,15 @@
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\bin\Debug\net8.0\BookLibwithSub.Repo.deps.json
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\bin\Debug\net8.0\BookLibwithSub.Repo.runtimeconfig.json
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\bin\Debug\net8.0\BookLibwithSub.Repo.dll
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\bin\Debug\net8.0\BookLibwithSub.Repo.pdb
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\obj\Debug\net8.0\BookLibwithSub.Repo.csproj.AssemblyReference.cache
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\obj\Debug\net8.0\BookLibwithSub.Repo.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\obj\Debug\net8.0\BookLibwithSub.Repo.AssemblyInfoInputs.cache
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\obj\Debug\net8.0\BookLibwithSub.Repo.AssemblyInfo.cs
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\obj\Debug\net8.0\BookLibwithSub.Repo.csproj.CoreCompileInputs.cache
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\obj\Debug\net8.0\BookLibwithSub.Repo.sourcelink.json
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\obj\Debug\net8.0\BookLibwithSub.Repo.dll
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\obj\Debug\net8.0\refint\BookLibwithSub.Repo.dll
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\obj\Debug\net8.0\BookLibwithSub.Repo.pdb
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\obj\Debug\net8.0\BookLibwithSub.Repo.genruntimeconfig.cache
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Repo\obj\Debug\net8.0\ref\BookLibwithSub.Repo.dll

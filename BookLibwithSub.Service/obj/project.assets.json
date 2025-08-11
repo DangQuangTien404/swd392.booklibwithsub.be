@@ -347,11 +347,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\dangq\\Desktop\\SWD\\SWD392.BookLibwithSub.API\\BookLibwithSub.Service\\BookLibwithSub.Service.csproj",
+      "projectUniqueName": "C:\\Users\\dangq\\Desktop\\SWD\\SWD-BE\\BookLibwithSub.Service\\BookLibwithSub.Service.csproj",
       "projectName": "BookLibwithSub.Service",
-      "projectPath": "C:\\Users\\dangq\\Desktop\\SWD\\SWD392.BookLibwithSub.API\\BookLibwithSub.Service\\BookLibwithSub.Service.csproj",
+      "projectPath": "C:\\Users\\dangq\\Desktop\\SWD\\SWD-BE\\BookLibwithSub.Service\\BookLibwithSub.Service.csproj",
       "packagesPath": "C:\\Users\\dangq\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\dangq\\Desktop\\SWD\\SWD392.BookLibwithSub.API\\BookLibwithSub.Service\\obj\\",
+      "outputPath": "C:\\Users\\dangq\\Desktop\\SWD\\SWD-BE\\BookLibwithSub.Service\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
