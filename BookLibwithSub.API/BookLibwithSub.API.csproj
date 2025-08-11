@@ -17,4 +17,8 @@
     <Folder Include="Controllers\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\BookLibwithSub.Service\BookLibwithSub.Service.csproj" />
+  </ItemGroup>
+
 </Project>

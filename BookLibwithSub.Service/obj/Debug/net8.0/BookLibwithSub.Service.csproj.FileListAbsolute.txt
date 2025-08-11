@@ -11,3 +11,6 @@ C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\BookLi
 C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\refint\BookLibwithSub.Service.dll
 C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\BookLibwithSub.Service.pdb
 C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\ref\BookLibwithSub.Service.dll
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\bin\Debug\net8.0\BookLibwithSub.Repo.dll
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\bin\Debug\net8.0\BookLibwithSub.Repo.pdb
+C:\Users\dangq\Desktop\SWD\SWD-BE\BookLibwithSub.Service\obj\Debug\net8.0\BookLibw.6EA462A5.Up2Date
