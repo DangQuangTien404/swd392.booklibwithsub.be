@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BookLibwithSub.Service\BookLibwithSub.Service.csproj" />
+    <ProjectReference Include="..\BookLibwithSub.Repo\BookLibwithSub.Repo.csproj" />
   </ItemGroup>
 
 </Project>
