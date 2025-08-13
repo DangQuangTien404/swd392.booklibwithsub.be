@@ -7,12 +7,11 @@ namespace BookLibwithSub.Repo.Entities;
 
 public class MemberDailyBorrow
 {
-    public int MemberId { get; set; }
-    public DateTime LocalDate { get; set; } // date-only semantics
-
+    public int MemberId { get; set; } 
+    public DateOnly LocalDate { get; set; } 
     public int BorrowCount { get; set; }
 
-    // Nav
-    public Member Member { get; set; } = default!;
+    public Member? Member { get; set; }
 }
+
 

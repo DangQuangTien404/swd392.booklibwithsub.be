@@ -8,13 +8,10 @@ namespace BookLibwithSub.Repo.Entities;
 public class MonthlyUniqueBorrow
 {
     public int MemberId { get; set; }
-    public string YearMonth { get; set; } = default!; // "YYYY-MM" e.g., "2025-08"
+    public string YearMonth { get; set; } = string.Empty; 
     public int BookId { get; set; }
-
     public DateTime FirstBorrowedAt { get; set; }
 
-    // Nav
-    public Member Member { get; set; } = default!;
-    public Book Book { get; set; } = default!;
+    public Member? Member { get; set; }
+    public Book? Book { get; set; }
 }
-

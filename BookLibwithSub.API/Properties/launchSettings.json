@@ -37,5 +37,16 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
+    {
+      "profiles": {
+        "BookLibwithSub.API": {
+          "commandName": "Project",
+          "dotnetRunMessages": true,
+          "applicationUrl": "http://0.0.0.0:8080",
+          "environmentVariables": { "ASPNETCORE_ENVIRONMENT": "Development" }
+        }
+      }
+    }
+
   }
 }
