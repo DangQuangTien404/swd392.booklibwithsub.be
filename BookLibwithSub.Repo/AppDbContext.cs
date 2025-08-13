@@ -88,21 +88,25 @@ public class AppDbContext : DbContext
         b.Entity<AccountLedger>()
             .HasOne(x => x.Member)
             .WithMany(x => x.LedgerEntries)
-            .HasForeignKey(x => x.MemberId);
+            .HasForeignKey(x => x.MemberId)
+            .OnDelete(DeleteBehavior.Restrict);  
+
         b.Entity<AccountLedger>()
             .HasOne(x => x.RefLoanItem)
             .WithMany()
             .HasForeignKey(x => x.RefLoanItemId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.SetNull);    
 
         b.Entity<Payment>()
             .HasOne(x => x.Member)
             .WithMany(x => x.Payments)
-            .HasForeignKey(x => x.MemberId);
+            .HasForeignKey(x => x.MemberId)
+            .OnDelete(DeleteBehavior.Restrict);  
         b.Entity<Payment>()
             .HasOne(x => x.Subscription)
             .WithMany(x => x.Payments)
-            .HasForeignKey(x => x.SubscriptionId);
+            .HasForeignKey(x => x.SubscriptionId)
+            .OnDelete(DeleteBehavior.Restrict); 
 
         b.Entity<SubscriptionPlan>()
             .Property(x => x.Price)
