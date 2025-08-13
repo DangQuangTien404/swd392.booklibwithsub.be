@@ -22,47 +22,6 @@ namespace BookLibwithSub.Repo.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("BookLibwithSub.Repo.Entities.AccountLedger", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Currency")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("EntryDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("EntryType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("MemberId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("RefLoanItemId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MemberId");
-
-                    b.HasIndex("RefLoanItemId");
-
-                    b.ToTable("AccountLedger");
-                });
-
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.Author", b =>
                 {
                     b.Property<int>("Id")
@@ -239,77 +198,6 @@ namespace BookLibwithSub.Repo.Migrations
                     b.ToTable("Members");
                 });
 
-            modelBuilder.Entity("BookLibwithSub.Repo.Entities.MemberDailyBorrow", b =>
-                {
-                    b.Property<int>("MemberId")
-                        .HasColumnType("int");
-
-                    b.Property<DateOnly>("LocalDate")
-                        .HasColumnType("date");
-
-                    b.Property<int>("BorrowCount")
-                        .HasColumnType("int");
-
-                    b.HasKey("MemberId", "LocalDate");
-
-                    b.ToTable("MemberDailyBorrows");
-                });
-
-            modelBuilder.Entity("BookLibwithSub.Repo.Entities.MonthlyUniqueBorrow", b =>
-                {
-                    b.Property<int>("MemberId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("YearMonth")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("BookId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("FirstBorrowedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("MemberId", "YearMonth", "BookId");
-
-                    b.HasIndex("BookId");
-
-                    b.ToTable("MonthlyUniqueBorrows");
-                });
-
-            modelBuilder.Entity("BookLibwithSub.Repo.Entities.Payment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("MemberId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SubscriptionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MemberId");
-
-                    b.HasIndex("SubscriptionId");
-
-                    b.ToTable("Payments");
-                });
-
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.Subscription", b =>
                 {
                     b.Property<int>("Id")
@@ -408,22 +296,59 @@ namespace BookLibwithSub.Repo.Migrations
                     b.ToTable("SystemAccounts");
                 });
 
-            modelBuilder.Entity("BookLibwithSub.Repo.Entities.AccountLedger", b =>
+            modelBuilder.Entity("BookLibwithSub.Repo.Entities.Transaction", b =>
                 {
-                    b.HasOne("BookLibwithSub.Repo.Entities.Member", "Member")
-                        .WithMany("LedgerEntries")
-                        .HasForeignKey("MemberId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
 
-                    b.HasOne("BookLibwithSub.Repo.Entities.LoanItem", "RefLoanItem")
-                        .WithMany()
-                        .HasForeignKey("RefLoanItemId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Navigation("Member");
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
-                    b.Navigation("RefLoanItem");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("LoanItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MemberId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("SubscriptionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LoanItemId");
+
+                    b.HasIndex("MemberId");
+
+                    b.HasIndex("SubscriptionId");
+
+                    b.ToTable("Transactions", t =>
+                        {
+                            t.HasCheckConstraint("CK_Transaction_Status", "Status IN ('Pending','Success','Failed','Posted')");
+
+                            t.HasCheckConstraint("CK_Transaction_Type", "Type IN ('Payment','Fine','Adjustment')");
+                        });
                 });
 
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.BookAuthor", b =>
@@ -486,55 +411,6 @@ namespace BookLibwithSub.Repo.Migrations
                     b.Navigation("Loan");
                 });
 
-            modelBuilder.Entity("BookLibwithSub.Repo.Entities.MemberDailyBorrow", b =>
-                {
-                    b.HasOne("BookLibwithSub.Repo.Entities.Member", "Member")
-                        .WithMany()
-                        .HasForeignKey("MemberId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Member");
-                });
-
-            modelBuilder.Entity("BookLibwithSub.Repo.Entities.MonthlyUniqueBorrow", b =>
-                {
-                    b.HasOne("BookLibwithSub.Repo.Entities.Book", "Book")
-                        .WithMany()
-                        .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BookLibwithSub.Repo.Entities.Member", "Member")
-                        .WithMany()
-                        .HasForeignKey("MemberId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Book");
-
-                    b.Navigation("Member");
-                });
-
-            modelBuilder.Entity("BookLibwithSub.Repo.Entities.Payment", b =>
-                {
-                    b.HasOne("BookLibwithSub.Repo.Entities.Member", "Member")
-                        .WithMany("Payments")
-                        .HasForeignKey("MemberId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("BookLibwithSub.Repo.Entities.Subscription", "Subscription")
-                        .WithMany("Payments")
-                        .HasForeignKey("SubscriptionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Member");
-
-                    b.Navigation("Subscription");
-                });
-
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.Subscription", b =>
                 {
                     b.HasOne("BookLibwithSub.Repo.Entities.Member", "Member")
@@ -552,6 +428,31 @@ namespace BookLibwithSub.Repo.Migrations
                     b.Navigation("Member");
 
                     b.Navigation("Plan");
+                });
+
+            modelBuilder.Entity("BookLibwithSub.Repo.Entities.Transaction", b =>
+                {
+                    b.HasOne("BookLibwithSub.Repo.Entities.LoanItem", "LoanItem")
+                        .WithMany()
+                        .HasForeignKey("LoanItemId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("BookLibwithSub.Repo.Entities.Member", "Member")
+                        .WithMany("Transactions")
+                        .HasForeignKey("MemberId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("BookLibwithSub.Repo.Entities.Subscription", "Subscription")
+                        .WithMany()
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("LoanItem");
+
+                    b.Navigation("Member");
+
+                    b.Navigation("Subscription");
                 });
 
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.Author", b =>
@@ -575,18 +476,11 @@ namespace BookLibwithSub.Repo.Migrations
 
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.Member", b =>
                 {
-                    b.Navigation("LedgerEntries");
-
                     b.Navigation("Loans");
 
-                    b.Navigation("Payments");
-
                     b.Navigation("Subscriptions");
-                });
 
-            modelBuilder.Entity("BookLibwithSub.Repo.Entities.Subscription", b =>
-                {
-                    b.Navigation("Payments");
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.SubscriptionPlan", b =>

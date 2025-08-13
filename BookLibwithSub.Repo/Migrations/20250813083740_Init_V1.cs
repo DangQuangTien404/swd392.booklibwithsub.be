@@ -157,51 +157,6 @@ namespace BookLibwithSub.Repo.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MemberDailyBorrows",
-                columns: table => new
-                {
-                    MemberId = table.Column<int>(type: "int", nullable: false),
-                    LocalDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    BorrowCount = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MemberDailyBorrows", x => new { x.MemberId, x.LocalDate });
-                    table.ForeignKey(
-                        name: "FK_MemberDailyBorrows_Members_MemberId",
-                        column: x => x.MemberId,
-                        principalTable: "Members",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MonthlyUniqueBorrows",
-                columns: table => new
-                {
-                    MemberId = table.Column<int>(type: "int", nullable: false),
-                    YearMonth = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    BookId = table.Column<int>(type: "int", nullable: false),
-                    FirstBorrowedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MonthlyUniqueBorrows", x => new { x.MemberId, x.YearMonth, x.BookId });
-                    table.ForeignKey(
-                        name: "FK_MonthlyUniqueBorrows_Books_BookId",
-                        column: x => x.BookId,
-                        principalTable: "Books",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_MonthlyUniqueBorrows_Members_MemberId",
-                        column: x => x.MemberId,
-                        principalTable: "Members",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Subscriptions",
                 columns: table => new
                 {
@@ -261,74 +216,45 @@ namespace BookLibwithSub.Repo.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Payments",
+                name: "Transactions",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     MemberId = table.Column<int>(type: "int", nullable: false),
-                    SubscriptionId = table.Column<int>(type: "int", nullable: false),
+                    SubscriptionId = table.Column<int>(type: "int", nullable: true),
+                    LoanItemId = table.Column<int>(type: "int", nullable: true),
+                    Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Note = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Payments", x => x.Id);
+                    table.PrimaryKey("PK_Transactions", x => x.Id);
+                    table.CheckConstraint("CK_Transaction_Status", "Status IN ('Pending','Success','Failed','Posted')");
+                    table.CheckConstraint("CK_Transaction_Type", "Type IN ('Payment','Fine','Adjustment')");
                     table.ForeignKey(
-                        name: "FK_Payments_Members_MemberId",
+                        name: "FK_Transactions_LoanItems_LoanItemId",
+                        column: x => x.LoanItemId,
+                        principalTable: "LoanItems",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Transactions_Members_MemberId",
                         column: x => x.MemberId,
                         principalTable: "Members",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Payments_Subscriptions_SubscriptionId",
+                        name: "FK_Transactions_Subscriptions_SubscriptionId",
                         column: x => x.SubscriptionId,
                         principalTable: "Subscriptions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
-
-            migrationBuilder.CreateTable(
-                name: "AccountLedger",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    MemberId = table.Column<int>(type: "int", nullable: false),
-                    EntryDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EntryType = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
-                    Currency = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RefLoanItemId = table.Column<int>(type: "int", nullable: true),
-                    Note = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AccountLedger", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AccountLedger_LoanItems_RefLoanItemId",
-                        column: x => x.RefLoanItemId,
-                        principalTable: "LoanItems",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_AccountLedger_Members_MemberId",
-                        column: x => x.MemberId,
-                        principalTable: "Members",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AccountLedger_MemberId",
-                table: "AccountLedger",
-                column: "MemberId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AccountLedger_RefLoanItemId",
-                table: "AccountLedger",
-                column: "RefLoanItemId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BookAuthors_AuthorId",
@@ -357,21 +283,6 @@ namespace BookLibwithSub.Repo.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_MonthlyUniqueBorrows_BookId",
-                table: "MonthlyUniqueBorrows",
-                column: "BookId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Payments_MemberId",
-                table: "Payments",
-                column: "MemberId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Payments_SubscriptionId",
-                table: "Payments",
-                column: "SubscriptionId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Subscriptions_MemberId",
                 table: "Subscriptions",
                 column: "MemberId");
@@ -386,14 +297,26 @@ namespace BookLibwithSub.Repo.Migrations
                 table: "SystemAccounts",
                 column: "Username",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transactions_LoanItemId",
+                table: "Transactions",
+                column: "LoanItemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transactions_MemberId",
+                table: "Transactions",
+                column: "MemberId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Transactions_SubscriptionId",
+                table: "Transactions",
+                column: "SubscriptionId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "AccountLedger");
-
             migrationBuilder.DropTable(
                 name: "BookAuthors");
 
@@ -401,22 +324,16 @@ namespace BookLibwithSub.Repo.Migrations
                 name: "Inventories");
 
             migrationBuilder.DropTable(
-                name: "MemberDailyBorrows");
-
-            migrationBuilder.DropTable(
-                name: "MonthlyUniqueBorrows");
-
-            migrationBuilder.DropTable(
-                name: "Payments");
-
-            migrationBuilder.DropTable(
                 name: "SystemAccounts");
 
             migrationBuilder.DropTable(
-                name: "LoanItems");
+                name: "Transactions");
 
             migrationBuilder.DropTable(
                 name: "Authors");
+
+            migrationBuilder.DropTable(
+                name: "LoanItems");
 
             migrationBuilder.DropTable(
                 name: "Subscriptions");

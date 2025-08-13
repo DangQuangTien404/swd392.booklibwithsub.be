@@ -8,8 +8,8 @@ namespace BookLibwithSub.Repo.Entities;
 public class Subscription
 {
     public int Id { get; set; }
-    public int MemberId { get; set; }   
-    public int PlanId { get; set; }       
+    public int MemberId { get; set; }
+    public int PlanId { get; set; }
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public string Status { get; set; } = "Active";
@@ -17,5 +17,4 @@ public class Subscription
 
     public Member? Member { get; set; }
     public SubscriptionPlan? Plan { get; set; }
-    public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

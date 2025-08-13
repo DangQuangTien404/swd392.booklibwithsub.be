@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 namespace BookLibwithSub.Repo.Entities;
-
 public class BookAuthor
 {
     public int BookId { get; set; }
@@ -13,5 +12,3 @@ public class BookAuthor
     public Book? Book { get; set; }
     public Author? Author { get; set; }
 }
-
-

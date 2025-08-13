@@ -7,9 +7,10 @@ namespace BookLibwithSub.Repo.Entities;
 
 public class SystemAccount
 {
-    public int Id { get; set; } 
+    public int Id { get; set; }
     public string Username { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty; 
-    public string Role { get; set; } = "Librarian";      
+    public string Role { get; set; } = "Librarian"; 
     public string Status { get; set; } = "Active";
 }
+

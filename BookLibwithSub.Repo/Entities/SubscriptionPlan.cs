@@ -7,9 +7,9 @@ namespace BookLibwithSub.Repo.Entities;
 
 public class SubscriptionPlan
 {
-    public int Id { get; set; } 
+    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public decimal Price { get; set; } 
+    public decimal Price { get; set; }
     public int MonthlyUniqueTitles { get; set; }
     public int DailyMaxLoans { get; set; }
     public bool AllowRepeatSameTitleInMonth { get; set; }
