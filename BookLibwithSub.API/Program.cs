@@ -1,16 +1,23 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
+using BookLibwithSub.API.Security;
 using BookLibwithSub.Repo;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// -------------------------------
+// Services
+// -------------------------------
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddDbContext<AppDbContext>(opts =>
     opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// CORS
 const string CorsPolicy = "AppCors";
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins")
     .Get<string[]>() ?? new[] { "http://localhost:5173" };
@@ -20,24 +27,58 @@ builder.Services.AddCors(o => o.AddPolicy(
     p => p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()
 ));
 
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "dev-secret-key-change-me";
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "BookLibIssuer";
-var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+// -------------------------------
+// JWT bootstrap (no length checks)
+// -------------------------------
+string jwtIssuer = builder.Configuration["Jwt:Issuer"]
+                   ?? Environment.GetEnvironmentVariable("JWT__ISSUER")
+                   ?? "BookLibIssuer";
 
+string configuredKey = builder.Configuration["Jwt:Key"]
+                       ?? Environment.GetEnvironmentVariable("JWT__KEY");
+
+// fail fast if key missing outside Dev
+if (string.IsNullOrWhiteSpace(configuredKey) && !builder.Environment.IsDevelopment())
+{
+    throw new InvalidOperationException(
+        "JWT signing key is not configured. Set env var JWT__KEY or configuration Jwt:Key.");
+}
+
+// Build signing key (prefer Base64; else UTF8). No size validation.
+static SymmetricSecurityKey BuildSigningKey(string key)
+{
+    key ??= string.Empty;
+    var trimmed = key.Trim();
+    try
+    {
+        return new SymmetricSecurityKey(Convert.FromBase64String(trimmed));
+    }
+    catch (FormatException)
+    {
+        return new SymmetricSecurityKey(Encoding.UTF8.GetBytes(trimmed));
+    }
+}
+
+var signingKey = BuildSigningKey(configuredKey);
+builder.Services.AddSingleton(signingKey); // reuse in TokenService
+
+// AuthN/AuthZ
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opt =>
     {
+        opt.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
         opt.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidIssuer = jwtIssuer,
 
-            ValidateAudience = false, 
+            ValidateAudience = false, // no audience configured
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = signingKey,
 
-            ValidateLifetime = true
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
         };
     });
 
@@ -65,18 +106,14 @@ builder.Services.AddSwaggerGen(c =>
         Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
     };
     c.AddSecurityDefinition("Bearer", securityScheme);
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        { securityScheme, new string[] { } }
-    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement { { securityScheme, Array.Empty<string>() } });
 });
 
 var app = builder.Build();
 
 // -------------------------------
-// 2) HTTP pipeline
+// Pipeline
 // -------------------------------
-
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -93,18 +130,11 @@ app.UseSwaggerUI(c =>
 });
 
 app.UseHttpsRedirection();
-
-// CORS before auth
 app.UseCors(CorsPolicy);
-
-// AuthZ stack
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Controllers
 app.MapControllers();
-
-// Root health check
 app.MapGet("/", () => "BookLibWithSub API is running");
 
 app.Run();
