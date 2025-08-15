@@ -3,18 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-namespace BookLibwithSub.Repo.Entities;
+using System;
+using System.Collections.Generic;
 
-public class Subscription
+namespace BookLibwithSub.Repo.Entities
 {
-    public int Id { get; set; }
-    public int MemberId { get; set; }
-    public int PlanId { get; set; }
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-    public string Status { get; set; } = "Active";
-    public bool AutoRenew { get; set; }
+    public class Subscription
+    {
+        public int SubscriptionID { get; set; }
+        public int UserID { get; set; }
+        public int SubscriptionPlanID { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Status { get; set; } = null!; // Active, Expired, Cancelled
 
-    public Member? Member { get; set; }
-    public SubscriptionPlan? Plan { get; set; }
+        public User User { get; set; } = null!;
+        public SubscriptionPlan SubscriptionPlan { get; set; } = null!;
+        public ICollection<Loan> Loans { get; set; } = new List<Loan>();
+        public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
+    }
 }

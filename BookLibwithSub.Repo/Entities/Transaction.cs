@@ -3,22 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-namespace BookLibwithSub.Repo.Entities;
+using System;
 
-public class Transaction
+namespace BookLibwithSub.Repo.Entities
 {
-    public int Id { get; set; }
-    public int MemberId { get; set; }
-    public int? SubscriptionId { get; set; }
-    public int? LoanItemId { get; set; }
-    public string Type { get; set; } = "Payment";
-    public decimal Amount { get; set; }
-    public string Currency { get; set; } = "VND";
-    public string Status { get; set; } = "Posted";
-    public DateTime CreatedAt { get; set; }
-    public string? Note { get; set; }
+    public class Transaction
+    {
+        public int TransactionID { get; set; }
+        public int UserID { get; set; }
+        public int? SubscriptionID { get; set; }
+        public string TransactionType { get; set; } = null!; 
+        public decimal Amount { get; set; }
+        public DateTime TransactionDate { get; set; }
 
-    public Member? Member { get; set; }
-    public Subscription? Subscription { get; set; }
-    public LoanItem? LoanItem { get; set; }
+        public User User { get; set; } = null!;
+        public Subscription? Subscription { get; set; }
+    }
 }
+

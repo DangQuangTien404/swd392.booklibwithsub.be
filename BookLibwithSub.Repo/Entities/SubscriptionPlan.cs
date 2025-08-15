@@ -3,16 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-namespace BookLibwithSub.Repo.Entities;
+using System;
+using System.Collections.Generic;
 
-public class SubscriptionPlan
+namespace BookLibwithSub.Repo.Entities
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public int MonthlyUniqueTitles { get; set; }
-    public int DailyMaxLoans { get; set; }
-    public bool AllowRepeatSameTitleInMonth { get; set; }
+    public class SubscriptionPlan
+    {
+        public int SubscriptionPlanID { get; set; }
+        public string PlanName { get; set; } = null!;
+        public int DurationDays { get; set; }
+        public int MaxDailyLoans { get; set; }
+        public int MaxMonthlyLoans { get; set; }
+        public decimal Price { get; set; }
 
-    public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
+        public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
+    }
 }
+

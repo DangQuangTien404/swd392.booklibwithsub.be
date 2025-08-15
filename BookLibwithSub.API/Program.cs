@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using BookLibwithSub.API.Security;
 using BookLibwithSub.Repo;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +11,6 @@ var builder = WebApplication.CreateBuilder(args);
 // -------------------------------
 // Services
 // -------------------------------
-builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddDbContext<AppDbContext>(opts =>
     opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -44,49 +42,6 @@ if (string.IsNullOrWhiteSpace(configuredKey) && !builder.Environment.IsDevelopme
         "JWT signing key is not configured. Set env var JWT__KEY or configuration Jwt:Key.");
 }
 
-// Build signing key (prefer Base64; else UTF8). No size validation.
-static SymmetricSecurityKey BuildSigningKey(string key)
-{
-    key ??= string.Empty;
-    var trimmed = key.Trim();
-    try
-    {
-        return new SymmetricSecurityKey(Convert.FromBase64String(trimmed));
-    }
-    catch (FormatException)
-    {
-        return new SymmetricSecurityKey(Encoding.UTF8.GetBytes(trimmed));
-    }
-}
-
-var signingKey = BuildSigningKey(configuredKey);
-builder.Services.AddSingleton(signingKey); // reuse in TokenService
-
-// AuthN/AuthZ
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(opt =>
-    {
-        opt.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
-        opt.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = jwtIssuer,
-
-            ValidateAudience = false, // no audience configured
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = signingKey,
-
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero
-        };
-    });
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
-    options.AddPolicy("LibrarianOrAdmin", p => p.RequireRole("Librarian", "Admin"));
-});
 
 // MVC + Swagger
 builder.Services.AddControllers();
