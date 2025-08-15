@@ -12,9 +12,12 @@ namespace BookLibwithSub.Repo.Entities
         public int LoanItemID { get; set; }
         public int LoanID { get; set; }
         public int BookID { get; set; }
+        public DateTime DueDate { get; set; }
         public DateTime? ReturnedDate { get; set; }
+        public string Status { get; set; }
 
-        public Loan Loan { get; set; } = null!;
-        public Book Book { get; set; } = null!;
+        // Navigation
+        public Loan Loan { get; set; }
+        public Book Book { get; set; }
     }
 }

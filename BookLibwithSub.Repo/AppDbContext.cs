@@ -6,9 +6,7 @@ namespace BookLibwithSub.Repo
     public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options)
-            : base(options)
-        {
-        }
+            : base(options) { }
 
         public DbSet<User> Users { get; set; }
         public DbSet<SubscriptionPlan> SubscriptionPlans { get; set; }
@@ -25,30 +23,64 @@ namespace BookLibwithSub.Repo
             // ===== USER =====
             modelBuilder.Entity<User>(entity =>
             {
+                // ERD shows: Username, PasswordHash, FullName, Email, PhoneNumber, CreatedDate, Role
                 entity.HasIndex(u => u.Email).IsUnique();
+                entity.HasIndex(u => u.Username).IsUnique();
 
                 entity.Property(u => u.Username)
                     .IsRequired()
                     .HasMaxLength(100);
 
+                entity.Property(u => u.PasswordHash)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
+                entity.Property(u => u.FullName)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
                 entity.Property(u => u.Email)
                     .IsRequired()
                     .HasMaxLength(255);
 
-                entity.Property(u => u.PasswordHash)
+                entity.Property(u => u.PhoneNumber)
+                    .HasMaxLength(20);
+
+                entity.Property(u => u.Role)
                     .IsRequired()
-                    .HasMaxLength(255);
+                    .HasMaxLength(50);
+
+                entity.Property(u => u.CreatedDate)
+                    .HasColumnType("datetime2")
+                    .HasDefaultValueSql("GETUTCDATE()");
             });
 
             // ===== SUBSCRIPTION PLAN =====
             modelBuilder.Entity<SubscriptionPlan>(entity =>
             {
+                // ERD: Name (Day/Month/Quarter/Year), DurationDays, MaxPerDay, MaxPerMonth, Price
                 entity.Property(p => p.PlanName)
                     .IsRequired()
                     .HasMaxLength(100);
 
+                entity.Property(p => p.DurationDays)
+                    .IsRequired();
+
+                entity.Property(p => p.MaxPerDay)
+                    .IsRequired();
+
+                entity.Property(p => p.MaxPerMonth)
+                    .IsRequired();
+
                 entity.Property(p => p.Price)
-                    .HasColumnType("decimal(18,2)");
+                    .HasColumnType("decimal(18,2)")
+                    .IsRequired();
+
+                entity.ToTable(t =>
+                {
+                    t.HasCheckConstraint("CK_SubscriptionPlan_Quotas",
+                        "[DurationDays] > 0 AND [MaxPerDay] >= 0 AND [MaxPerMonth] >= 0");
+                });
             });
 
             // ===== SUBSCRIPTION =====
@@ -64,6 +96,8 @@ namespace BookLibwithSub.Repo
                     .HasForeignKey(s => s.SubscriptionPlanID)
                     .OnDelete(DeleteBehavior.Restrict);
 
+                entity.Property(s => s.StartDate).IsRequired();
+                entity.Property(s => s.EndDate).IsRequired();
                 entity.Property(s => s.Status)
                     .IsRequired()
                     .HasMaxLength(50);
@@ -83,6 +117,24 @@ namespace BookLibwithSub.Repo
                 entity.Property(b => b.ISBN)
                     .IsRequired()
                     .HasMaxLength(20);
+
+                entity.Property(b => b.Publisher)
+                    .HasMaxLength(255);
+
+                entity.Property(b => b.PublishedYear)
+                    .IsRequired();
+
+                entity.Property(b => b.TotalCopies)
+                    .IsRequired();
+
+                entity.Property(b => b.AvailableCopies)
+                    .IsRequired();
+
+                entity.ToTable(t =>
+                {
+                    t.HasCheckConstraint("CK_Book_Copies",
+                        "[TotalCopies] >= 0 AND [AvailableCopies] >= 0 AND [AvailableCopies] <= [TotalCopies]");
+                });
             });
 
             // ===== LOAN =====
@@ -92,6 +144,12 @@ namespace BookLibwithSub.Repo
                     .WithMany(s => s.Loans)
                     .HasForeignKey(l => l.SubscriptionID)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                entity.Property(l => l.LoanDate).IsRequired();
+                entity.Property(l => l.ReturnDate).IsRequired(false);
+                entity.Property(l => l.Status)
+                    .IsRequired()
+                    .HasMaxLength(50);
             });
 
             // ===== LOAN ITEM =====
@@ -106,6 +164,15 @@ namespace BookLibwithSub.Repo
                     .WithMany(b => b.LoanItems)
                     .HasForeignKey(li => li.BookID)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.Property(li => li.DueDate).IsRequired();
+                entity.Property(li => li.ReturnedDate).IsRequired(false);
+                entity.Property(li => li.Status)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                // Useful operational index when checking duplicates or enforcing rules
+                entity.HasIndex(li => new { li.LoanID, li.BookID });
             });
 
             // ===== TRANSACTION =====
@@ -126,7 +193,12 @@ namespace BookLibwithSub.Repo
                     .HasMaxLength(50);
 
                 entity.Property(t => t.Amount)
-                    .HasColumnType("decimal(18,2)");
+                    .HasColumnType("decimal(18,2)")
+                    .IsRequired();
+
+                entity.Property(t => t.TransactionDate)
+                    .HasColumnType("datetime2")
+                    .HasDefaultValueSql("GETUTCDATE()");
             });
         }
     }

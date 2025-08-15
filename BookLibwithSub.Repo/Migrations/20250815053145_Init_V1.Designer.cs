@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookLibwithSub.Repo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250815044243_Init_V1")]
+    [Migration("20250815053145_Init_V1")]
     partial class Init_V1
     {
         /// <inheritdoc />
@@ -46,6 +46,14 @@ namespace BookLibwithSub.Repo.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<int>("PublishedYear")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Publisher")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -56,7 +64,10 @@ namespace BookLibwithSub.Repo.Migrations
 
                     b.HasKey("BookID");
 
-                    b.ToTable("Books");
+                    b.ToTable("Books", t =>
+                        {
+                            t.HasCheckConstraint("CK_Book_Copies", "[TotalCopies] >= 0 AND [AvailableCopies] >= 0 AND [AvailableCopies] <= [TotalCopies]");
+                        });
                 });
 
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.Loan", b =>
@@ -70,8 +81,13 @@ namespace BookLibwithSub.Repo.Migrations
                     b.Property<DateTime>("LoanDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("ReturnDueDate")
+                    b.Property<DateTime?>("ReturnDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("SubscriptionID")
                         .HasColumnType("int");
@@ -94,17 +110,25 @@ namespace BookLibwithSub.Repo.Migrations
                     b.Property<int>("BookID")
                         .HasColumnType("int");
 
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("LoanID")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("ReturnedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.HasKey("LoanItemID");
 
                     b.HasIndex("BookID");
 
-                    b.HasIndex("LoanID");
+                    b.HasIndex("LoanID", "BookID");
 
                     b.ToTable("LoanItems");
                 });
@@ -154,10 +178,10 @@ namespace BookLibwithSub.Repo.Migrations
                     b.Property<int>("DurationDays")
                         .HasColumnType("int");
 
-                    b.Property<int>("MaxDailyLoans")
+                    b.Property<int>("MaxPerDay")
                         .HasColumnType("int");
 
-                    b.Property<int>("MaxMonthlyLoans")
+                    b.Property<int>("MaxPerMonth")
                         .HasColumnType("int");
 
                     b.Property<string>("PlanName")
@@ -170,7 +194,10 @@ namespace BookLibwithSub.Repo.Migrations
 
                     b.HasKey("SubscriptionPlanID");
 
-                    b.ToTable("SubscriptionPlans");
+                    b.ToTable("SubscriptionPlans", t =>
+                        {
+                            t.HasCheckConstraint("CK_SubscriptionPlan_Quotas", "[DurationDays] > 0 AND [MaxPerDay] >= 0 AND [MaxPerMonth] >= 0");
+                        });
                 });
 
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.Transaction", b =>
@@ -188,7 +215,9 @@ namespace BookLibwithSub.Repo.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("TransactionType")
                         .IsRequired()
@@ -216,9 +245,16 @@ namespace BookLibwithSub.Repo.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
 
                     b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
@@ -228,6 +264,16 @@ namespace BookLibwithSub.Repo.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -236,6 +282,9 @@ namespace BookLibwithSub.Repo.Migrations
                     b.HasKey("UserID");
 
                     b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Username")
                         .IsUnique();
 
                     b.ToTable("Users");

@@ -15,10 +15,11 @@ namespace BookLibwithSub.Repo.Entities
         public int SubscriptionPlanID { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public string Status { get; set; } = null!; // Active, Expired, Cancelled
+        public string Status { get; set; }
 
-        public User User { get; set; } = null!;
-        public SubscriptionPlan SubscriptionPlan { get; set; } = null!;
+        // Navigation
+        public User User { get; set; }
+        public SubscriptionPlan SubscriptionPlan { get; set; }
         public ICollection<Loan> Loans { get; set; } = new List<Loan>();
         public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     }

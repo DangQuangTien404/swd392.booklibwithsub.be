@@ -11,12 +11,13 @@ namespace BookLibwithSub.Repo.Entities
     public class SubscriptionPlan
     {
         public int SubscriptionPlanID { get; set; }
-        public string PlanName { get; set; } = null!;
+        public string PlanName { get; set; } // Name (Day / Month / Quarter / Year)
         public int DurationDays { get; set; }
-        public int MaxDailyLoans { get; set; }
-        public int MaxMonthlyLoans { get; set; }
+        public int MaxPerDay { get; set; }
+        public int MaxPerMonth { get; set; }
         public decimal Price { get; set; }
 
+        // Navigation
         public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
     }
 }

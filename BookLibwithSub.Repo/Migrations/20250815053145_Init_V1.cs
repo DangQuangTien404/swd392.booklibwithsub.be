@@ -20,12 +20,15 @@ namespace BookLibwithSub.Repo.Migrations
                     Title = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     AuthorName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     ISBN = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Publisher = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    PublishedYear = table.Column<int>(type: "int", nullable: false),
                     TotalCopies = table.Column<int>(type: "int", nullable: false),
                     AvailableCopies = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Books", x => x.BookID);
+                    table.CheckConstraint("CK_Book_Copies", "[TotalCopies] >= 0 AND [AvailableCopies] >= 0 AND [AvailableCopies] <= [TotalCopies]");
                 });
 
             migrationBuilder.CreateTable(
@@ -36,13 +39,14 @@ namespace BookLibwithSub.Repo.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PlanName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     DurationDays = table.Column<int>(type: "int", nullable: false),
-                    MaxDailyLoans = table.Column<int>(type: "int", nullable: false),
-                    MaxMonthlyLoans = table.Column<int>(type: "int", nullable: false),
+                    MaxPerDay = table.Column<int>(type: "int", nullable: false),
+                    MaxPerMonth = table.Column<int>(type: "int", nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_SubscriptionPlans", x => x.SubscriptionPlanID);
+                    table.CheckConstraint("CK_SubscriptionPlan_Quotas", "[DurationDays] > 0 AND [MaxPerDay] >= 0 AND [MaxPerMonth] >= 0");
                 });
 
             migrationBuilder.CreateTable(
@@ -52,9 +56,12 @@ namespace BookLibwithSub.Repo.Migrations
                     UserID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Username = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    FullName = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    PhoneNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    Role = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -98,7 +105,8 @@ namespace BookLibwithSub.Repo.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SubscriptionID = table.Column<int>(type: "int", nullable: false),
                     LoanDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ReturnDueDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    ReturnDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -119,9 +127,9 @@ namespace BookLibwithSub.Repo.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserID = table.Column<int>(type: "int", nullable: false),
                     SubscriptionID = table.Column<int>(type: "int", nullable: true),
-                    TransactionType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    TransactionType = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    TransactionDate = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
                 },
                 constraints: table =>
                 {
@@ -148,7 +156,9 @@ namespace BookLibwithSub.Repo.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     LoanID = table.Column<int>(type: "int", nullable: false),
                     BookID = table.Column<int>(type: "int", nullable: false),
-                    ReturnedDate = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    DueDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ReturnedDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -173,9 +183,9 @@ namespace BookLibwithSub.Repo.Migrations
                 column: "BookID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LoanItems_LoanID",
+                name: "IX_LoanItems_LoanID_BookID",
                 table: "LoanItems",
-                column: "LoanID");
+                columns: new[] { "LoanID", "BookID" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Loans_SubscriptionID",
@@ -206,6 +216,12 @@ namespace BookLibwithSub.Repo.Migrations
                 name: "IX_Users_Email",
                 table: "Users",
                 column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Username",
+                table: "Users",
+                column: "Username",
                 unique: true);
         }
 
