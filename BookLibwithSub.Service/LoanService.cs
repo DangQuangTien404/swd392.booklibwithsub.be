@@ -67,5 +67,10 @@ namespace BookLibwithSub.Service
 
             await _loanRepo.AddAsync(loan);
         }
+
+        public async Task ReturnAsync(int loanItemId)
+        {
+            await _loanRepo.ReturnAsync(loanItemId);
+        }
     }
 }

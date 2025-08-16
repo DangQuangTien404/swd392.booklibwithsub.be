@@ -25,7 +25,32 @@ namespace BookLibwithSub.Repo
 
         public async Task AddAsync(Loan loan)
         {
+            foreach (var item in loan.LoanItems)
+            {
+                var book = await _context.Books.FirstOrDefaultAsync(b => b.BookID == item.BookID);
+                if (book == null || book.AvailableCopies <= 0)
+                    throw new InvalidOperationException($"Book {item.BookID} not available");
+                book.AvailableCopies--;
+            }
+
             _context.Loans.Add(loan);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task ReturnAsync(int loanItemId)
+        {
+            var item = await _context.LoanItems
+                .Include(li => li.Book)
+                .FirstOrDefaultAsync(li => li.LoanItemID == loanItemId);
+            if (item == null)
+                throw new InvalidOperationException("Loan item not found");
+            if (item.Status == "Returned")
+                return;
+
+            item.ReturnedDate = DateTime.UtcNow;
+            item.Status = "Returned";
+            item.Book.AvailableCopies++;
+
             await _context.SaveChangesAsync();
         }
     }

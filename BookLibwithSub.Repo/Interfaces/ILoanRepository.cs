@@ -8,5 +8,6 @@ namespace BookLibwithSub.Repo.Interfaces
     {
         Task<int> CountLoanItemsAsync(int subscriptionId, DateTime start, DateTime end);
         Task AddAsync(Loan loan);
+        Task ReturnAsync(int loanItemId);
     }
 }
