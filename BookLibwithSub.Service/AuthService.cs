@@ -30,6 +30,18 @@ namespace BookLibwithSub.Service
                 throw new InvalidOperationException("Username already exists");
             }
 
+            var emailAttr = new System.ComponentModel.DataAnnotations.EmailAddressAttribute();
+            if (!emailAttr.IsValid(request.Email))
+            {
+                throw new InvalidOperationException("Invalid email format");
+            }
+
+            var existingEmail = await _userRepository.GetByEmailAsync(request.Email);
+            if (existingEmail != null)
+            {
+                throw new InvalidOperationException("Email already exists");
+            }
+
             var user = new User
             {
                 Username = request.Username,
