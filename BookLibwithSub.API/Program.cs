@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Text;
 using BookLibwithSub.Repo;
+using BookLibwithSub.Repo.Interfaces;
+using BookLibwithSub.Service;
+using BookLibwithSub.Service.Interfaces;
+using BookLibwithSub.Service.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -15,6 +19,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(opts =>
     opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
+builder.Services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
+builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+builder.Services.AddScoped<ILoanRepository, LoanRepository>();
+builder.Services.AddScoped<ILoanService, LoanService>();
+
 // CORS
 const string CorsPolicy = "AppCors";
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins")
@@ -28,19 +40,38 @@ builder.Services.AddCors(o => o.AddPolicy(
 // -------------------------------
 // JWT bootstrap (no length checks)
 // -------------------------------
-string jwtIssuer = builder.Configuration["Jwt:Issuer"]
-                   ?? Environment.GetEnvironmentVariable("JWT__ISSUER")
-                   ?? "BookLibIssuer";
-
-string configuredKey = builder.Configuration["Jwt:Key"]
-                       ?? Environment.GetEnvironmentVariable("JWT__KEY");
+var jwtOptions = new JwtOptions();
+builder.Configuration.GetSection("Jwt").Bind(jwtOptions);
+jwtOptions.Key = Environment.GetEnvironmentVariable("JWT__KEY") ?? jwtOptions.Key;
+jwtOptions.Issuer = Environment.GetEnvironmentVariable("JWT__ISSUER") ?? jwtOptions.Issuer;
 
 // fail fast if key missing outside Dev
-if (string.IsNullOrWhiteSpace(configuredKey) && !builder.Environment.IsDevelopment())
+if (string.IsNullOrWhiteSpace(jwtOptions.Key) && !builder.Environment.IsDevelopment())
 {
     throw new InvalidOperationException(
         "JWT signing key is not configured. Set env var JWT__KEY or configuration Jwt:Key.");
 }
+
+// make options available for IOptions<JwtOptions>
+builder.Services.Configure<JwtOptions>(o =>
+{
+    o.Key = jwtOptions.Key;
+    o.Issuer = jwtOptions.Issuer;
+});
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = false,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtOptions.Issuer,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key ?? string.Empty))
+        };
+    });
+builder.Services.AddAuthorization();
 
 
 // MVC + Swagger
