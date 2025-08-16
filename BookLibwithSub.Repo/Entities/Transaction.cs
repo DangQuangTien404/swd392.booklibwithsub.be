@@ -16,6 +16,7 @@ namespace BookLibwithSub.Repo.Entities
         public decimal Amount { get; set; }
         public string TransactionType { get; set; }
         public DateTime TransactionDate { get; set; }
+        public string Status { get; set; }
 
         // Navigation
         public User User { get; set; }
