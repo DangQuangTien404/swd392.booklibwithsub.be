@@ -26,6 +26,7 @@ builder.Services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 builder.Services.AddScoped<ILoanService, LoanService>();
+builder.Services.AddScoped<IBookRepository, BookRepository>();
 
 // CORS
 const string CorsPolicy = "AppCors";
