@@ -6,6 +6,7 @@ namespace BookLibwithSub.Repo.Interfaces
 {
     public interface ISubscriptionPlanRepository
     {
+        Task<List<SubscriptionPlan>> GetAllAsync();
         Task<SubscriptionPlan?> GetByIdAsync(int id);
         Task AddAsync(SubscriptionPlan plan);
         Task UpdateAsync(SubscriptionPlan plan);

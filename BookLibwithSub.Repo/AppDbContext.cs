@@ -199,6 +199,10 @@ namespace BookLibwithSub.Repo
                 entity.Property(t => t.TransactionDate)
                     .HasColumnType("datetime2")
                     .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.Property(t => t.Status)
+                    .IsRequired()
+                    .HasMaxLength(50);
             });
         }
     }

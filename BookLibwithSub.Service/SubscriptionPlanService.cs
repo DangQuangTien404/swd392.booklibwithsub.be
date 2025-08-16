@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using BookLibwithSub.Repo.Entities;
 using BookLibwithSub.Repo.Interfaces;
@@ -11,6 +13,11 @@ namespace BookLibwithSub.Service
         public SubscriptionPlanService(ISubscriptionPlanRepository repo)
         {
             _repo = repo;
+        }
+
+        public async Task<IEnumerable<SubscriptionPlan>> GetAllAsync()
+        {
+            return await _repo.GetAllAsync();
         }
 
         public async Task<SubscriptionPlan> AddAsync(SubscriptionPlan plan)

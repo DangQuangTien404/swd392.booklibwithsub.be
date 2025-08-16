@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using BookLibwithSub.Repo.Entities;
 using BookLibwithSub.Repo.Interfaces;
@@ -11,6 +12,11 @@ namespace BookLibwithSub.Repo
         public SubscriptionPlanRepository(AppDbContext context)
         {
             _context = context;
+        }
+
+        public async Task<List<SubscriptionPlan>> GetAllAsync()
+        {
+            return await _context.SubscriptionPlans.ToListAsync();
         }
 
         public async Task<SubscriptionPlan?> GetByIdAsync(int id)
