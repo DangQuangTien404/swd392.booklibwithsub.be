@@ -68,6 +68,53 @@ namespace BookLibwithSub.Service
             await _loanRepo.AddAsync(loan);
         }
 
+        public async Task AddItemsAsync(int loanId, IEnumerable<int> bookIds)
+        {
+            var loan = await _loanRepo.GetByIdAsync(loanId);
+            if (loan == null)
+                throw new InvalidOperationException("Loan not found");
+
+            var subscription = loan.Subscription;
+            if (subscription == null)
+                throw new InvalidOperationException("Subscription not found");
+
+            if (subscription.Status != "Active" ||
+                subscription.StartDate > DateTime.UtcNow ||
+                subscription.EndDate < DateTime.UtcNow)
+            {
+                throw new InvalidOperationException("Subscription is not active or out of date range");
+            }
+
+            var plan = subscription.SubscriptionPlan;
+            if (plan == null)
+                throw new InvalidOperationException("Subscription plan missing");
+
+            var now = DateTime.UtcNow;
+            var dayStart = now.Date;
+            var dayEnd = dayStart.AddDays(1);
+            var monthStart = new DateTime(now.Year, now.Month, 1);
+            var monthEnd = monthStart.AddMonths(1);
+
+            int alreadyToday = await _loanRepo.CountLoanItemsAsync(subscription.SubscriptionID, dayStart, dayEnd);
+            int alreadyMonth = await _loanRepo.CountLoanItemsAsync(subscription.SubscriptionID, monthStart, monthEnd);
+            int requested = bookIds.Count();
+
+            if (alreadyToday + requested > plan.MaxPerDay)
+                throw new InvalidOperationException("Daily borrowing limit exceeded");
+
+            if (alreadyMonth + requested > plan.MaxPerMonth)
+                throw new InvalidOperationException("Monthly borrowing limit exceeded");
+
+            var items = bookIds.Select(id => new LoanItem
+            {
+                BookID = id,
+                DueDate = now.AddDays(14),
+                Status = "Borrowed"
+            }).ToList();
+
+            await _loanRepo.AddItemsAsync(loan, items);
+        }
+
         public async Task ReturnAsync(int loanItemId)
         {
             await _loanRepo.ReturnAsync(loanItemId);

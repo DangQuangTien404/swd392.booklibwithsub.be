@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BookLibwithSub.Repo.Entities;
@@ -38,10 +39,34 @@ namespace BookLibwithSub.Repo
             await tx.CommitAsync();
         }
 
+        public async Task<Loan?> GetByIdAsync(int loanId)
+        {
+            return await _context.Loans
+                .Include(l => l.Subscription)
+                    .ThenInclude(s => s.SubscriptionPlan)
+                .FirstOrDefaultAsync(l => l.LoanID == loanId);
+        }
+
+        public async Task AddItemsAsync(Loan loan, IEnumerable<LoanItem> items)
+        {
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            foreach (var item in items)
+            {
+                var affected = await _context.Database.ExecuteSqlInterpolatedAsync($"UPDATE Books SET AvailableCopies = AvailableCopies - 1 WHERE BookID = {item.BookID} AND AvailableCopies > 0");
+                if (affected == 0)
+                    throw new InvalidOperationException($"Book {item.BookID} not available");
+                item.LoanID = loan.LoanID;
+                _context.LoanItems.Add(item);
+            }
+            await _context.SaveChangesAsync();
+            await tx.CommitAsync();
+        }
+
         public async Task ReturnAsync(int loanItemId)
         {
+            await using var tx = await _context.Database.BeginTransactionAsync();
+
             var item = await _context.LoanItems
-                .Include(li => li.Book)
                 .FirstOrDefaultAsync(li => li.LoanItemID == loanItemId);
             if (item == null)
                 throw new InvalidOperationException("Loan item not found");
@@ -50,9 +75,13 @@ namespace BookLibwithSub.Repo
 
             item.ReturnedDate = DateTime.UtcNow;
             item.Status = "Returned";
-            item.Book.AvailableCopies++;
+
+            var affected = await _context.Database.ExecuteSqlInterpolatedAsync($"UPDATE Books SET AvailableCopies = AvailableCopies + 1 WHERE BookID = {item.BookID}");
+            if (affected == 0)
+                throw new InvalidOperationException($"Book {item.BookID} not found");
 
             await _context.SaveChangesAsync();
+            await tx.CommitAsync();
         }
     }
 }
