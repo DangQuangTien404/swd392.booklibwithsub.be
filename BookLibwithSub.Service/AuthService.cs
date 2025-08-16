@@ -6,6 +6,7 @@ using BookLibwithSub.Repo.Entities;
 using BookLibwithSub.Repo.Interfaces;
 using BookLibwithSub.Service.Interfaces;
 using BookLibwithSub.Service.Models;
+using BookLibwithSub.Service.Constants;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -49,7 +50,7 @@ namespace BookLibwithSub.Service
                 FullName = request.FullName,
                 Email = request.Email,
                 PhoneNumber = request.PhoneNumber,
-                Role = request.Role?.ToLower() == "admin" ? "admin" : "user",
+                Role = request.Role?.ToLower() == Roles.Admin ? Roles.Admin : Roles.User,
                 CreatedDate = DateTime.UtcNow
             };
 

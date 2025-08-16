@@ -1,5 +1,6 @@
 using BookLibwithSub.Repo.Entities;
 using BookLibwithSub.Service.Interfaces;
+using BookLibwithSub.Service.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,7 +17,7 @@ namespace BookLibwithSub.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Create(SubscriptionPlan plan)
         {
             var created = await _service.AddAsync(plan);
@@ -33,7 +34,7 @@ namespace BookLibwithSub.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Update(int id, SubscriptionPlan plan)
         {
             await _service.UpdateAsync(id, plan);
@@ -41,7 +42,7 @@ namespace BookLibwithSub.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Delete(int id)
         {
             await _service.DeleteAsync(id);
