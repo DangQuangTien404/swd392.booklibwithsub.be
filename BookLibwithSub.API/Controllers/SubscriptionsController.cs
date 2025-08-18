@@ -24,13 +24,6 @@ namespace BookLibwithSub.API.Controllers
             _subscriptionService = subscriptionService;
         }
 
-        [HttpGet("plans")]
-        public async Task<IActionResult> GetPlans()
-        {
-            var plans = await _planService.GetAllAsync();
-            return Ok(plans);
-        }
-
         public class PurchaseRequest { public int PlanId { get; set; } }
 
         [HttpPost("purchase")]
@@ -71,16 +64,13 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        // ---- helper: reads both "sub" and NameIdentifier ----
         private static int? GetUserId(ClaimsPrincipal user)
         {
             var sub =
                 user.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ??
                 user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            if (int.TryParse(sub, out var id)) return id;
-            return null;
-            // If you ever include a custom claim, add it here as another fallback.
+            return int.TryParse(sub, out var id) ? id : (int?)null;
         }
     }
 }
