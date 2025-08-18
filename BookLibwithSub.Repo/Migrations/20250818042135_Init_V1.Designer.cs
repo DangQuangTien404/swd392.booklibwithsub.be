@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookLibwithSub.Repo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250818040517_AddCurrentToken")]
-    partial class AddCurrentToken
+    [Migration("20250818042135_Init_V1")]
+    partial class Init_V1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
