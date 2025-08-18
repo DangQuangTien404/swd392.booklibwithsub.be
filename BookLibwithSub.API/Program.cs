@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using System.Text.Json.Serialization;
 using BookLibwithSub.Repo;
 using BookLibwithSub.Repo.Interfaces;
 using BookLibwithSub.Service.Interfaces;
@@ -13,9 +14,6 @@ using BookLibwithSub.Service.Service;
 using BookLibwithSub.Repo.repository;
 
 var builder = WebApplication.CreateBuilder(args);
-
-
-
 
 builder.Services.AddDbContext<AppDbContext>(opts =>
     opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -42,8 +40,6 @@ builder.Services.AddCors(o => o.AddPolicy(
     CorsPolicy,
     p => p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()
 ));
-
-
 
 var jwtOptions = new JwtOptions();
 builder.Configuration.GetSection("Jwt").Bind(jwtOptions);
@@ -76,7 +72,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(o =>
+{
+    o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;  
+});
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -97,8 +98,6 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
-
-
 
 if (app.Environment.IsDevelopment())
 {

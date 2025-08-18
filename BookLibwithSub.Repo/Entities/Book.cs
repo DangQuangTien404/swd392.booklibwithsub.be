@@ -1,10 +1,11 @@
 ﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using System;
-using System.Collections.Generic;
 
 namespace BookLibwithSub.Repo.Entities
 {
@@ -19,6 +20,6 @@ namespace BookLibwithSub.Repo.Entities
         public int TotalCopies { get; set; }
         public int AvailableCopies { get; set; }
 
-        public ICollection<LoanItem> LoanItems { get; set; } = new List<LoanItem>();
+        [JsonIgnore] public ICollection<LoanItem> LoanItems { get; set; } = new List<LoanItem>();
     }
 }

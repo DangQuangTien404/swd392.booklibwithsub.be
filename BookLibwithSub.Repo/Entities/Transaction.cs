@@ -1,9 +1,10 @@
 ﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using System;
 
 namespace BookLibwithSub.Repo.Entities
 {
@@ -18,8 +19,8 @@ namespace BookLibwithSub.Repo.Entities
         public DateTime TransactionDate { get; set; }
         public string Status { get; set; }
 
-        public User User { get; set; }
-        public Subscription Subscription { get; set; }
+        [JsonIgnore] public User? User { get; set; }
+        [JsonIgnore] public Subscription? Subscription { get; set; }
     }
 }
 

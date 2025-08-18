@@ -1,10 +1,11 @@
 ﻿using System;
+using System;
+using System.Collections.Generic;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using System;
-using System.Collections.Generic;
 
 namespace BookLibwithSub.Repo.Entities
 {
@@ -16,7 +17,7 @@ namespace BookLibwithSub.Repo.Entities
         public DateTime? ReturnDate { get; set; }
         public string Status { get; set; }
 
-        public Subscription Subscription { get; set; }
-        public ICollection<LoanItem> LoanItems { get; set; } = new List<LoanItem>();
+        [JsonIgnore] public Subscription? Subscription { get; set; }
+        [JsonIgnore] public ICollection<LoanItem> LoanItems { get; set; } = new List<LoanItem>();
     }
 }
