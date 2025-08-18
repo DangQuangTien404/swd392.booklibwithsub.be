@@ -13,6 +13,11 @@ namespace BookLibwithSub.Repo
             _context = context;
         }
 
+        public async Task<User?> GetByIdAsync(int userId)
+        {
+            return await _context.Users.FindAsync(userId);
+        }
+
         public async Task<User?> GetByUsernameAsync(string username)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
@@ -26,6 +31,12 @@ namespace BookLibwithSub.Repo
         public async Task AddAsync(User user)
         {
             _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(User user)
+        {
+            _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }
     }
