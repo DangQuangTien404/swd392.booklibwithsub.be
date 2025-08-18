@@ -51,5 +51,19 @@ namespace BookLibwithSub.Service
                 }
             }
         }
+
+        public async Task RecordFineAsync(int userId, int loanItemId, decimal amount)
+        {
+            var transaction = new Transaction
+            {
+                UserID = userId,
+                Amount = amount,
+                TransactionType = "Fine",
+                TransactionDate = DateTime.UtcNow,
+                Status = "Unpaid"
+            };
+
+            await _transactionRepo.AddAsync(transaction);
+        }
     }
 }
