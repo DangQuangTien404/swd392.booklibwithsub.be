@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.IdentityModel.Tokens.Jwt;
 using BookLibwithSub.Service.Constants;
 using BookLibwithSub.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -51,6 +52,24 @@ namespace BookLibwithSub.API.Controllers
         {
             await _loanService.ReturnAsync(loanItemId);
             return Ok();
+        }
+
+        [HttpGet("history")]
+        [Authorize(Roles = Roles.User)]
+        public async Task<IActionResult> GetHistory()
+        {
+            var userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? "0");
+            var loans = await _loanService.GetLoanHistoryAsync(userId);
+            return Ok(loans);
+        }
+
+        [HttpGet("active")]
+        [Authorize(Roles = Roles.User)]
+        public async Task<IActionResult> GetActive()
+        {
+            var userId = int.Parse(User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ?? "0");
+            var loans = await _loanService.GetActiveLoansAsync(userId);
+            return Ok(loans);
         }
     }
 }

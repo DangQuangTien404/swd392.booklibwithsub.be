@@ -119,5 +119,15 @@ namespace BookLibwithSub.Service
         {
             await _loanRepo.ReturnAsync(loanItemId);
         }
+
+        public async Task<IEnumerable<Loan>> GetLoanHistoryAsync(int userId)
+        {
+            return await _loanRepo.GetLoansByUserAsync(userId);
+        }
+
+        public async Task<IEnumerable<Loan>> GetActiveLoansAsync(int userId)
+        {
+            return await _loanRepo.GetActiveLoansByUserAsync(userId);
+        }
     }
 }
