@@ -28,6 +28,11 @@ namespace BookLibwithSub.Repo
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
+        public async Task<User?> GetByTokenAsync(string token)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.CurrentToken == token);
+        }
+
         public async Task AddAsync(User user)
         {
             _context.Users.Add(user);
@@ -38,6 +43,16 @@ namespace BookLibwithSub.Repo
         {
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateTokenAsync(int userId, string? token)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                user.CurrentToken = token;
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

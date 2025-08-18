@@ -50,6 +50,9 @@ namespace BookLibwithSub.Repo
                     .IsRequired()
                     .HasMaxLength(50);
 
+                entity.Property(u => u.CurrentToken)
+                    .HasMaxLength(500);
+
                 entity.Property(u => u.CreatedDate)
                     .HasColumnType("datetime2")
                     .HasDefaultValueSql("GETUTCDATE()");

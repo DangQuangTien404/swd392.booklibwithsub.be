@@ -18,6 +18,7 @@ namespace BookLibwithSub.Repo.Entities
         public string PhoneNumber { get; set; }
         public DateTime CreatedDate { get; set; }
         public string Role { get; set; }
+        public string? CurrentToken { get; set; }
 
         // Navigation
         public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();

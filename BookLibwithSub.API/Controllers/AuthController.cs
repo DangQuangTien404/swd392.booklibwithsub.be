@@ -1,4 +1,5 @@
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
 using BookLibwithSub.Service.Interfaces;
 using BookLibwithSub.Service.Models;
@@ -54,6 +55,20 @@ namespace BookLibwithSub.API.Controllers
             }
 
             return Ok(new { token });
+        }
+
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            if (userIdClaim == null || !int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized();
+            }
+
+            await _authService.LogoutAsync(userId);
+            return Ok();
         }
     }
 }
