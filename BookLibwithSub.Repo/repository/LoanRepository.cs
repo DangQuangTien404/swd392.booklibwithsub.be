@@ -6,7 +6,7 @@ using BookLibwithSub.Repo.Entities;
 using BookLibwithSub.Repo.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace BookLibwithSub.Repo
+namespace BookLibwithSub.Repo.repository
 {
     public class LoanRepository : ILoanRepository
     {

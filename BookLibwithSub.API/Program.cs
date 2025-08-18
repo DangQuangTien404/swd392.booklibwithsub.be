@@ -2,7 +2,6 @@
 using System.Text;
 using BookLibwithSub.Repo;
 using BookLibwithSub.Repo.Interfaces;
-using BookLibwithSub.Service;
 using BookLibwithSub.Service.Interfaces;
 using BookLibwithSub.Service.Models;
 using BookLibwithSub.API.Middleware;
@@ -10,6 +9,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using BookLibwithSub.Service.Service;
+using BookLibwithSub.Repo.repository;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -4,7 +4,7 @@ using BookLibwithSub.Repo.Entities;
 using BookLibwithSub.Repo.Interfaces;
 using BookLibwithSub.Service.Interfaces;
 
-namespace BookLibwithSub.Service
+namespace BookLibwithSub.Service.Service
 {
     public class TransactionService : ITransactionService
     {
