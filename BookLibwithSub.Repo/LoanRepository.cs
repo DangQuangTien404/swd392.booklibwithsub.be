@@ -62,16 +62,18 @@ namespace BookLibwithSub.Repo
             await tx.CommitAsync();
         }
 
-        public async Task ReturnAsync(int loanItemId)
+        public async Task<LoanItem> ReturnAsync(int loanItemId)
         {
             await using var tx = await _context.Database.BeginTransactionAsync();
 
             var item = await _context.LoanItems
+                .Include(li => li.Loan)
+                    .ThenInclude(l => l.Subscription)
                 .FirstOrDefaultAsync(li => li.LoanItemID == loanItemId);
             if (item == null)
                 throw new InvalidOperationException("Loan item not found");
             if (item.Status == "Returned")
-                return;
+                return item;
 
             item.ReturnedDate = DateTime.UtcNow;
             item.Status = "Returned";
@@ -82,6 +84,8 @@ namespace BookLibwithSub.Repo
 
             await _context.SaveChangesAsync();
             await tx.CommitAsync();
+
+            return item;
         }
 
         public async Task<List<Loan>> GetLoansByUserAsync(int userId)

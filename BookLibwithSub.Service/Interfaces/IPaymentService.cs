@@ -7,5 +7,6 @@ namespace BookLibwithSub.Service.Interfaces
     {
         Task<Transaction> CreatePendingTransactionAsync(int userId, int subscriptionId, decimal amount);
         Task MarkTransactionPaidAsync(int transactionId);
+        Task RecordFineAsync(int userId, int loanItemId, decimal amount);
     }
 }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using BookLibwithSub.Repo.Entities;
 using BookLibwithSub.Repo.Interfaces;
@@ -28,6 +30,14 @@ namespace BookLibwithSub.Repo
         {
             _context.Transactions.Update(transaction);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<Transaction>> GetByUserAsync(int userId)
+        {
+            return await _context.Transactions
+                .Where(t => t.UserID == userId)
+                .OrderByDescending(t => t.TransactionDate)
+                .ToListAsync();
         }
     }
 }

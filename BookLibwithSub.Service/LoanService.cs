@@ -12,11 +12,13 @@ namespace BookLibwithSub.Service
     {
         private readonly ISubscriptionRepository _subscriptionRepo;
         private readonly ILoanRepository _loanRepo;
+        private readonly IPaymentService _paymentService;
 
-        public LoanService(ISubscriptionRepository subscriptionRepo, ILoanRepository loanRepo)
+        public LoanService(ISubscriptionRepository subscriptionRepo, ILoanRepository loanRepo, IPaymentService paymentService)
         {
             _subscriptionRepo = subscriptionRepo;
             _loanRepo = loanRepo;
+            _paymentService = paymentService;
         }
 
         public async Task BorrowAsync(int subscriptionId, IEnumerable<int> bookIds)
@@ -117,7 +119,21 @@ namespace BookLibwithSub.Service
 
         public async Task ReturnAsync(int loanItemId)
         {
-            await _loanRepo.ReturnAsync(loanItemId);
+            var item = await _loanRepo.ReturnAsync(loanItemId);
+
+            if (item.ReturnedDate.HasValue && item.ReturnedDate.Value > item.DueDate)
+            {
+                var daysLate = (item.ReturnedDate.Value.Date - item.DueDate.Date).Days;
+                if (daysLate > 0)
+                {
+                    var fineAmount = daysLate * 1m;
+                    var userId = item.Loan?.Subscription?.UserID ?? 0;
+                    if (userId != 0)
+                    {
+                        await _paymentService.RecordFineAsync(userId, item.LoanItemID, fineAmount);
+                    }
+                }
+            }
         }
 
         public async Task<IEnumerable<Loan>> GetLoanHistoryAsync(int userId)
