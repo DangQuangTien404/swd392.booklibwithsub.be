@@ -5,6 +5,7 @@ using BookLibwithSub.Repo.Interfaces;
 using BookLibwithSub.Service;
 using BookLibwithSub.Service.Interfaces;
 using BookLibwithSub.Service.Models;
+using BookLibwithSub.API.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -123,6 +124,7 @@ app.UseSwaggerUI(c =>
 app.UseHttpsRedirection();
 app.UseCors(CorsPolicy);
 app.UseAuthentication();
+app.UseMiddleware<TokenValidationMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -66,6 +66,12 @@ namespace BookLibwithSub.Service
             if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return null;
 
+            if (!string.IsNullOrEmpty(user.CurrentToken))
+            {
+                // existing active session
+                return null;
+            }
+
             var key = _jwtOptions.Key;
             if (string.IsNullOrEmpty(key))
                 throw new InvalidOperationException("JWT key not configured");
@@ -88,7 +94,15 @@ namespace BookLibwithSub.Service
                 signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+            await _userRepository.UpdateTokenAsync(user.UserID, tokenString);
+
+            return tokenString;
+        }
+
+        public async Task LogoutAsync(int userId)
+        {
+            await _userRepository.UpdateTokenAsync(userId, null);
         }
     }
 }

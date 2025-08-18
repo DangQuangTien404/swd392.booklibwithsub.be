@@ -7,5 +7,6 @@ namespace BookLibwithSub.Service.Interfaces
     {
         Task RegisterAsync(RegisterRequest request);
         Task<string?> LoginAsync(LoginRequest request);
+        Task LogoutAsync(int userId);
     }
 }

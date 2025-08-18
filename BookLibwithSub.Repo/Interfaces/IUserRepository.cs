@@ -8,7 +8,9 @@ namespace BookLibwithSub.Repo.Interfaces
         Task<User?> GetByIdAsync(int userId);
         Task<User?> GetByUsernameAsync(string username);
         Task<User?> GetByEmailAsync(string email);
+        Task<User?> GetByTokenAsync(string token);
         Task AddAsync(User user);
         Task UpdateAsync(User user);
+        Task UpdateTokenAsync(int userId, string? token);
     }
 }
