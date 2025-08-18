@@ -24,9 +24,8 @@ namespace BookLibwithSub.Service.Service
             _jwtOptions = jwtOptions.Value;
         }
 
-        // ------------------------
-        // Register
-        // ------------------------
+
+
         public async Task RegisterAsync(RegisterRequest request)
         {
             var existing = await _userRepository.GetByUsernameAsync(request.Username);
@@ -52,9 +51,8 @@ namespace BookLibwithSub.Service.Service
             await _userRepository.AddAsync(user);
         }
 
-        // ------------------------
-        // Login
-        // ------------------------
+
+
         public async Task<string?> LoginAsync(LoginRequest request)
         {
             var user = await _userRepository.GetByUsernameAsync(request.Username);
@@ -63,7 +61,6 @@ namespace BookLibwithSub.Service.Service
             if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return null;
 
-            // single active session rule (can relax if you want)
             if (!string.IsNullOrEmpty(user.CurrentToken))
                 return null;
 
@@ -91,23 +88,20 @@ namespace BookLibwithSub.Service.Service
             return tokenString;
         }
 
-        // ------------------------
-        // Logout
-        // ------------------------
+
+
         public async Task LogoutAsync(int userId)
         {
             await _userRepository.UpdateTokenAsync(userId, null);
         }
 
-        // ------------------------
-        // Update account (no role change here)
-        // ------------------------
+
+
         public async Task UpdateAccountAsync(int userId, UpdateUserRequest request)
         {
             var user = await _userRepository.GetByIdAsync(userId)
                        ?? throw new InvalidOperationException("User not found");
 
-            // username
             if (!string.IsNullOrWhiteSpace(request.Username) &&
                 !string.Equals(request.Username, user.Username, StringComparison.Ordinal))
             {
@@ -117,7 +111,6 @@ namespace BookLibwithSub.Service.Service
                 user.Username = request.Username.Trim();
             }
 
-            // email
             if (!string.IsNullOrWhiteSpace(request.Email) &&
                 !string.Equals(request.Email, user.Email, StringComparison.OrdinalIgnoreCase))
             {
@@ -137,7 +130,6 @@ namespace BookLibwithSub.Service.Service
             if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
                 user.PhoneNumber = request.PhoneNumber.Trim();
 
-            // password -> rehash; invalidate current token
             if (!string.IsNullOrWhiteSpace(request.Password))
             {
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
@@ -147,9 +139,8 @@ namespace BookLibwithSub.Service.Service
             await _userRepository.UpdateAsync(user);
         }
 
-        // ------------------------
-        // Delete account
-        // ------------------------
+
+
         public async Task DeleteAccountAsync(int userId)
         {
             await _userRepository.UpdateTokenAsync(userId, null);

@@ -19,7 +19,6 @@ namespace BookLibwithSub.Repo.Entities
         public int TotalCopies { get; set; }
         public int AvailableCopies { get; set; }
 
-        // Navigation
         public ICollection<LoanItem> LoanItems { get; set; } = new List<LoanItem>();
     }
 }

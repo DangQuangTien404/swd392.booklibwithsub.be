@@ -16,7 +16,6 @@ namespace BookLibwithSub.Repo.Entities
         public DateTime? ReturnDate { get; set; }
         public string Status { get; set; }
 
-        // Navigation
         public Subscription Subscription { get; set; }
         public ICollection<LoanItem> LoanItems { get; set; } = new List<LoanItem>();
     }

@@ -12,13 +12,12 @@ namespace BookLibwithSub.Repo.Entities
     {
         public int TransactionID { get; set; }
         public int UserID { get; set; }
-        public int? SubscriptionID { get; set; } // nullable per ERD (0..N from Subscription)
+        public int? SubscriptionID { get; set; }
         public decimal Amount { get; set; }
         public string TransactionType { get; set; }
         public DateTime TransactionDate { get; set; }
         public string Status { get; set; }
 
-        // Navigation
         public User User { get; set; }
         public Subscription Subscription { get; set; }
     }

@@ -20,7 +20,6 @@ namespace BookLibwithSub.Repo.Entities
         public string Role { get; set; }
         public string? CurrentToken { get; set; }
 
-        // Navigation
         public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
         public ICollection<Transaction> Transactions { get; set; } = new List<Transaction>();
     }
