@@ -24,8 +24,6 @@ namespace BookLibwithSub.Service.Service
             _jwtOptions = jwtOptions.Value;
         }
 
-
-
         public async Task RegisterAsync(RegisterRequest request)
         {
             var existing = await _userRepository.GetByUsernameAsync(request.Username);
@@ -50,9 +48,6 @@ namespace BookLibwithSub.Service.Service
 
             await _userRepository.AddAsync(user);
         }
-
-
-
         public async Task<string?> LoginAsync(LoginRequest request)
         {
             var user = await _userRepository.GetByUsernameAsync(request.Username);
@@ -60,9 +55,10 @@ namespace BookLibwithSub.Service.Service
 
             if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return null;
-
             if (!string.IsNullOrEmpty(user.CurrentToken))
-                return null;
+            {
+                await _userRepository.UpdateTokenAsync(user.UserID, null);
+            }
 
             var key = _jwtOptions.Key ?? throw new InvalidOperationException("JWT key not configured");
             var issuer = _jwtOptions.Issuer;
@@ -71,7 +67,7 @@ namespace BookLibwithSub.Service.Service
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UserID.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role),
+                new Claim(ClaimTypes.Role, user.Role)
             };
 
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
@@ -88,15 +84,10 @@ namespace BookLibwithSub.Service.Service
             return tokenString;
         }
 
-
-
         public async Task LogoutAsync(int userId)
         {
             await _userRepository.UpdateTokenAsync(userId, null);
         }
-
-
-
         public async Task UpdateAccountAsync(int userId, UpdateUserRequest request)
         {
             var user = await _userRepository.GetByIdAsync(userId)
@@ -133,14 +124,11 @@ namespace BookLibwithSub.Service.Service
             if (!string.IsNullOrWhiteSpace(request.Password))
             {
                 user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-                user.CurrentToken = null;
+                user.CurrentToken = null; 
             }
 
             await _userRepository.UpdateAsync(user);
         }
-
-
-
         public async Task DeleteAccountAsync(int userId)
         {
             await _userRepository.UpdateTokenAsync(userId, null);
