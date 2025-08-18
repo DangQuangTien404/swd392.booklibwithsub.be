@@ -11,5 +11,6 @@ namespace BookLibwithSub.Repo.Interfaces
         Task AddAsync(SubscriptionPlan plan);
         Task UpdateAsync(SubscriptionPlan plan);
         Task DeleteAsync(int id);
+        Task<bool> ExistsByNameAsync(string planName, int? exceptId = null);
     }
 }
