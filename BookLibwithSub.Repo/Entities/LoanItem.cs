@@ -16,7 +16,6 @@ namespace BookLibwithSub.Repo.Entities
         public DateTime? ReturnedDate { get; set; }
         public string Status { get; set; }
 
-        // Navigation
         public Loan Loan { get; set; }
         public Book Book { get; set; }
     }

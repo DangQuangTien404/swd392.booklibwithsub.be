@@ -21,11 +21,9 @@ namespace BookLibwithSub.API.Controllers
         private static BookResponse ToResponse(Book b) =>
             new(b.BookID, b.Title, b.AuthorName, b.ISBN, b.Publisher, b.PublishedYear, b.TotalCopies, b.AvailableCopies);
 
-        // -------------------------
-        // GET: list & search (by name/title)
-        // -------------------------
 
-        /// <summary>List books (search by title with ?q=)</summary>
+
+
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
@@ -34,7 +32,6 @@ namespace BookLibwithSub.API.Controllers
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 10;
 
-            // your repo already exposes SearchAsync(q, page, pageSize) in your current controller
             var (items, total) = await _repository.SearchAsync(q, page, pageSize);
             return Ok(new
             {
@@ -45,20 +42,18 @@ namespace BookLibwithSub.API.Controllers
             });
         }
 
-        /// <summary>Find books by exact title</summary>
         [HttpGet("by-title")]
         [AllowAnonymous]
         [ProducesResponseType(typeof(IEnumerable<BookResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetByTitle([FromQuery] string title)
         {
-            // if your repository doesn't have a specific method, reuse SearchAsync(title, 1, bigPage)
+
             var (items, _) = await _repository.SearchAsync(title, 1, 100);
             var matches = items.Where(b => string.Equals(b.Title, title, StringComparison.OrdinalIgnoreCase))
                                .Select(ToResponse);
             return Ok(matches);
         }
 
-        /// <summary>Get a book by id</summary>
         [HttpGet("{id:int}")]
         [AllowAnonymous]
         [ProducesResponseType(typeof(BookResponse), StatusCodes.Status200OK)]
@@ -70,11 +65,9 @@ namespace BookLibwithSub.API.Controllers
             return Ok(ToResponse(book));
         }
 
-        // -------------------------
-        // POST: create (Admin)
-        // -------------------------
 
-        /// <summary>Create a new book</summary>
+
+
         [HttpPost]
         [Authorize(Roles = Roles.Admin)]
         [ProducesResponseType(typeof(BookResponse), StatusCodes.Status201Created)]
@@ -105,11 +98,9 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        // -------------------------
-        // PUT: full update (Admin)
-        // -------------------------
 
-        /// <summary>Replace a book</summary>
+
+
         [HttpPut("{id:int}")]
         [Authorize(Roles = Roles.Admin)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -141,11 +132,9 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        // -------------------------
-        // PATCH: partial update (Admin)
-        // -------------------------
 
-        /// <summary>Partially update a book</summary>
+
+
         [HttpPatch("{id:int}")]
         [Authorize(Roles = Roles.Admin)]
         [ProducesResponseType(typeof(BookResponse), StatusCodes.Status200OK)]
@@ -167,11 +156,9 @@ namespace BookLibwithSub.API.Controllers
             return Ok(ToResponse(existing));
         }
 
-        // -------------------------
-        // DELETE (Admin)
-        // -------------------------
 
-        /// <summary>Delete a book</summary>
+
+
         [HttpDelete("{id:int}")]
         [Authorize(Roles = Roles.Admin)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

@@ -47,7 +47,6 @@ namespace BookLibwithSub.Repo
             await _context.SaveChangesAsync();
         }
 
-        // ADD THIS:
         public Task<User?> GetByTokenAsync(string token) =>
             _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.CurrentToken == token);
     }

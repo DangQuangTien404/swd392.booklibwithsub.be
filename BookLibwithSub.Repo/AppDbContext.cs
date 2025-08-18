@@ -20,10 +20,9 @@ namespace BookLibwithSub.Repo
         {
             base.OnModelCreating(modelBuilder);
 
-            // ===== USER =====
             modelBuilder.Entity<User>(entity =>
             {
-                // ERD shows: Username, PasswordHash, FullName, Email, PhoneNumber, CreatedDate, Role
+
                 entity.HasIndex(u => u.Email).IsUnique();
                 entity.HasIndex(u => u.Username).IsUnique();
 
@@ -58,10 +57,9 @@ namespace BookLibwithSub.Repo
                     .HasDefaultValueSql("GETUTCDATE()");
             });
 
-            // ===== SUBSCRIPTION PLAN =====
             modelBuilder.Entity<SubscriptionPlan>(entity =>
             {
-                // ERD: Name (Day/Month/Quarter/Year), DurationDays, MaxPerDay, MaxPerMonth, Price
+
                 entity.Property(p => p.PlanName)
                     .IsRequired()
                     .HasMaxLength(100);
@@ -86,7 +84,6 @@ namespace BookLibwithSub.Repo
                 });
             });
 
-            // ===== SUBSCRIPTION =====
             modelBuilder.Entity<Subscription>(entity =>
             {
                 entity.HasOne(s => s.User)
@@ -106,7 +103,6 @@ namespace BookLibwithSub.Repo
                     .HasMaxLength(50);
             });
 
-            // ===== BOOK =====
             modelBuilder.Entity<Book>(entity =>
             {
                 entity.Property(b => b.Title)
@@ -140,7 +136,6 @@ namespace BookLibwithSub.Repo
                 });
             });
 
-            // ===== LOAN =====
             modelBuilder.Entity<Loan>(entity =>
             {
                 entity.HasOne(l => l.Subscription)
@@ -155,7 +150,6 @@ namespace BookLibwithSub.Repo
                     .HasMaxLength(50);
             });
 
-            // ===== LOAN ITEM =====
             modelBuilder.Entity<LoanItem>(entity =>
             {
                 entity.HasOne(li => li.Loan)
@@ -174,11 +168,9 @@ namespace BookLibwithSub.Repo
                     .IsRequired()
                     .HasMaxLength(50);
 
-                // Useful operational index when checking duplicates or enforcing rules
                 entity.HasIndex(li => new { li.LoanID, li.BookID });
             });
 
-            // ===== TRANSACTION =====
             modelBuilder.Entity<Transaction>(entity =>
             {
                 entity.HasOne(t => t.User)

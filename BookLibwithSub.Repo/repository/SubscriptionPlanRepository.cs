@@ -33,7 +33,7 @@ namespace BookLibwithSub.Repo.repository
 
         public async Task AddAsync(SubscriptionPlan plan)
         {
-            // Guard: unique plan name (case-insensitive)
+
             if (await ExistsByNameAsync(plan.PlanName))
                 throw new InvalidOperationException($"Plan '{plan.PlanName}' already exists.");
 
@@ -43,7 +43,7 @@ namespace BookLibwithSub.Repo.repository
 
         public async Task UpdateAsync(SubscriptionPlan plan)
         {
-            // Guard: unique plan name excluding this record
+
             if (await ExistsByNameAsync(plan.PlanName, plan.SubscriptionPlanID))
                 throw new InvalidOperationException($"Plan '{plan.PlanName}' already exists.");
 
@@ -63,7 +63,6 @@ namespace BookLibwithSub.Repo.repository
             }
         }
 
-        // --------- helper (add to interface) ----------
         public async Task<bool> ExistsByNameAsync(string planName, int? exceptId = null)
         {
             var normalized = planName.Trim().ToLower();

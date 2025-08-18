@@ -19,11 +19,9 @@ namespace BookLibwithSub.API.Controllers
             _authService = authService;
         }
 
-        // ========== AUTH ==========
 
-        /// <summary>Register a new user.</summary>
         [HttpPost("register")]
-        [AllowAnonymous]  // no auth required (temporary)
+        [AllowAnonymous] 
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -39,9 +37,8 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        /// <summary>Login and receive a JWT token.</summary>
         [HttpPost("login")]
-        [AllowAnonymous]  // no auth required (temporary)
+        [AllowAnonymous] 
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -58,13 +55,12 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        /// <summary>Logout (invalidate current session token).</summary>
         [HttpPost("logout")]
-        [AllowAnonymous]  // no auth required (temporary)
+        [AllowAnonymous] 
         public async Task<IActionResult> Logout()
         {
-            // Since we're not requiring auth now, allow optional userId via query/header/body if you want.
-            // For a minimal version, do nothing if user is not authenticated.
+
+
             try
             {
                 var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
@@ -72,7 +68,7 @@ namespace BookLibwithSub.API.Controllers
                 {
                     await _authService.LogoutAsync(userId);
                 }
-                // If no authenticated user, just return OK (temporary behavior).
+
                 return Ok();
             }
             catch (Exception ex)
@@ -81,11 +77,9 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        // ========== ACCOUNT MGMT (TEMP: no auth) ==========
 
-        /// <summary>Update an account by id. (TEMP: no auth required)</summary>
         [HttpPut("users/{id:int}")]
-        [AllowAnonymous]  // no auth required (temporary)
+        [AllowAnonymous] 
         public async Task<IActionResult> UpdateAccount(int id, [FromBody] UpdateUserRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -97,7 +91,7 @@ namespace BookLibwithSub.API.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                // e.g., "User not found" or duplicate username/email
+
                 return NotFound(new { message = ex.Message });
             }
             catch (Exception ex)
@@ -106,9 +100,8 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        /// <summary>Delete an account by id. (TEMP: no auth required)</summary>
         [HttpDelete("users/{id:int}")]
-        [AllowAnonymous]  // no auth required (temporary)
+        [AllowAnonymous] 
         public async Task<IActionResult> DeleteAccount(int id)
         {
             try
