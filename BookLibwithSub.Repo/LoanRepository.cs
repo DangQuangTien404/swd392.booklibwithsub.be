@@ -83,5 +83,23 @@ namespace BookLibwithSub.Repo
             await _context.SaveChangesAsync();
             await tx.CommitAsync();
         }
+
+        public async Task<List<Loan>> GetLoansByUserAsync(int userId)
+        {
+            return await _context.Loans
+                .Include(l => l.LoanItems)
+                .Where(l => l.Subscription.UserID == userId)
+                .OrderByDescending(l => l.LoanDate)
+                .ToListAsync();
+        }
+
+        public async Task<List<Loan>> GetActiveLoansByUserAsync(int userId)
+        {
+            return await _context.Loans
+                .Where(l => l.Subscription.UserID == userId &&
+                             l.LoanItems.Any(li => li.Status != "Returned"))
+                .Include(l => l.LoanItems.Where(li => li.Status != "Returned"))
+                .ToListAsync();
+        }
     }
 }
