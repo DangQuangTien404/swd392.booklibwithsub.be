@@ -5,7 +5,7 @@ using BookLibwithSub.Repo.Entities;
 using BookLibwithSub.Repo.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace BookLibwithSub.Repo
+namespace BookLibwithSub.Repo.repository
 {
     public class SubscriptionPlanRepository : ISubscriptionPlanRepository
     {
@@ -33,7 +33,7 @@ namespace BookLibwithSub.Repo
 
         public async Task AddAsync(SubscriptionPlan plan)
         {
-            // Guard: unique plan name (case-insensitive)
+
             if (await ExistsByNameAsync(plan.PlanName))
                 throw new InvalidOperationException($"Plan '{plan.PlanName}' already exists.");
 
@@ -43,7 +43,7 @@ namespace BookLibwithSub.Repo
 
         public async Task UpdateAsync(SubscriptionPlan plan)
         {
-            // Guard: unique plan name excluding this record
+
             if (await ExistsByNameAsync(plan.PlanName, plan.SubscriptionPlanID))
                 throw new InvalidOperationException($"Plan '{plan.PlanName}' already exists.");
 
@@ -63,7 +63,6 @@ namespace BookLibwithSub.Repo
             }
         }
 
-        // --------- helper (add to interface) ----------
         public async Task<bool> ExistsByNameAsync(string planName, int? exceptId = null)
         {
             var normalized = planName.Trim().ToLower();

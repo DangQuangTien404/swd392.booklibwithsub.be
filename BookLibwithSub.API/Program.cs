@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Text;
+using System.Text.Json.Serialization;
 using BookLibwithSub.Repo;
 using BookLibwithSub.Repo.Interfaces;
-using BookLibwithSub.Service;
 using BookLibwithSub.Service.Interfaces;
 using BookLibwithSub.Service.Models;
 using BookLibwithSub.API.Middleware;
@@ -10,12 +10,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using BookLibwithSub.Service.Service;
+using BookLibwithSub.Repo.repository;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// -------------------------------
-// Services
-// -------------------------------
 
 builder.Services.AddDbContext<AppDbContext>(opts =>
     opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -34,7 +32,6 @@ builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 builder.Services.AddScoped<ILoanService, LoanService>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 
-// CORS
 const string CorsPolicy = "AppCors";
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins")
     .Get<string[]>() ?? new[] { "http://localhost:5173" };
@@ -44,22 +41,17 @@ builder.Services.AddCors(o => o.AddPolicy(
     p => p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()
 ));
 
-// -------------------------------
-// JWT bootstrap (no length checks)
-// -------------------------------
 var jwtOptions = new JwtOptions();
 builder.Configuration.GetSection("Jwt").Bind(jwtOptions);
 jwtOptions.Key = Environment.GetEnvironmentVariable("JWT__KEY") ?? jwtOptions.Key;
 jwtOptions.Issuer = Environment.GetEnvironmentVariable("JWT__ISSUER") ?? jwtOptions.Issuer;
 
-// fail fast if key missing outside Dev
 if (string.IsNullOrWhiteSpace(jwtOptions.Key) && !builder.Environment.IsDevelopment())
 {
     throw new InvalidOperationException(
         "JWT signing key is not configured. Set env var JWT__KEY or configuration Jwt:Key.");
 }
 
-// make options available for IOptions<JwtOptions>
 builder.Services.Configure<JwtOptions>(o =>
 {
     o.Key = jwtOptions.Key;
@@ -80,9 +72,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorization();
 
+builder.Services.AddControllers().AddJsonOptions(o =>
+{
+    o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;  
+});
 
-// MVC + Swagger
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -104,9 +99,6 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// -------------------------------
-// Pipeline
-// -------------------------------
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();

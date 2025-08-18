@@ -1,9 +1,10 @@
 ﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using System;
 
 namespace BookLibwithSub.Repo.Entities
 {
@@ -12,15 +13,14 @@ namespace BookLibwithSub.Repo.Entities
     {
         public int TransactionID { get; set; }
         public int UserID { get; set; }
-        public int? SubscriptionID { get; set; } // nullable per ERD (0..N from Subscription)
+        public int? SubscriptionID { get; set; }
         public decimal Amount { get; set; }
         public string TransactionType { get; set; }
         public DateTime TransactionDate { get; set; }
         public string Status { get; set; }
 
-        // Navigation
-        public User User { get; set; }
-        public Subscription Subscription { get; set; }
+        [JsonIgnore] public User? User { get; set; }
+        [JsonIgnore] public Subscription? Subscription { get; set; }
     }
 }
 

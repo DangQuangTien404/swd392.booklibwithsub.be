@@ -19,14 +19,12 @@ namespace BookLibwithSub.API.Controllers
             _authService = authService;
         }
 
+
         [HttpPost("register")]
-        [AllowAnonymous]
+        [AllowAnonymous] 
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
             try
             {
@@ -40,35 +38,85 @@ namespace BookLibwithSub.API.Controllers
         }
 
         [HttpPost("login")]
-        [AllowAnonymous]
+        [AllowAnonymous] 
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var token = await _authService.LoginAsync(request);
-            if (token == null)
+            try
             {
-                return Unauthorized();
+                var token = await _authService.LoginAsync(request);
+                if (token == null) return Unauthorized();
+                return Ok(new { token });
             }
-
-            return Ok(new { token });
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("logout")]
-        [Authorize]
+        [AllowAnonymous] 
         public async Task<IActionResult> Logout()
         {
-            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            if (userIdClaim == null || !int.TryParse(userIdClaim, out var userId))
-            {
-                return Unauthorized();
-            }
 
-            await _authService.LogoutAsync(userId);
-            return Ok();
+
+            try
+            {
+                var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+                if (int.TryParse(userIdClaim, out var userId))
+                {
+                    await _authService.LogoutAsync(userId);
+                }
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+
+        [HttpPut("users/{id:int}")]
+        [AllowAnonymous] 
+        public async Task<IActionResult> UpdateAccount(int id, [FromBody] UpdateUserRequest request)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            try
+            {
+                await _authService.UpdateAccountAsync(id, request);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("users/{id:int}")]
+        [AllowAnonymous] 
+        public async Task<IActionResult> DeleteAccount(int id)
+        {
+            try
+            {
+                await _authService.DeleteAccountAsync(id);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

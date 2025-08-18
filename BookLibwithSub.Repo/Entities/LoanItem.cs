@@ -1,9 +1,10 @@
 ﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using System;
 
 namespace BookLibwithSub.Repo.Entities
 {
@@ -16,8 +17,7 @@ namespace BookLibwithSub.Repo.Entities
         public DateTime? ReturnedDate { get; set; }
         public string Status { get; set; }
 
-        // Navigation
-        public Loan Loan { get; set; }
-        public Book Book { get; set; }
+        [JsonIgnore] public Loan? Loan { get; set; }
+        public Book? Book { get; set; }
     }
 }

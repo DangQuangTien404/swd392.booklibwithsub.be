@@ -21,9 +21,8 @@ namespace BookLibwithSub.API.Controllers
         private static SubscriptionPlanResponse ToResponse(SubscriptionPlan p) =>
             new(p.SubscriptionPlanID, p.PlanName, p.DurationDays, p.MaxPerDay, p.MaxPerMonth, p.Price);
 
-        /// <summary>Get all subscription plans.</summary>
         [HttpGet]
-        [Authorize] // or [AllowAnonymous] if you want it public
+        [Authorize]
         [ProducesResponseType(typeof(IEnumerable<SubscriptionPlanResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
         {
@@ -31,7 +30,6 @@ namespace BookLibwithSub.API.Controllers
             return Ok(plans.Select(ToResponse));
         }
 
-        /// <summary>Get a subscription plan by id.</summary>
         [HttpGet("{id:int}")]
         [Authorize]
         [ProducesResponseType(typeof(SubscriptionPlanResponse), StatusCodes.Status200OK)]
@@ -43,7 +41,6 @@ namespace BookLibwithSub.API.Controllers
             return Ok(ToResponse(plan));
         }
 
-        /// <summary>Create a new subscription plan (Admin only).</summary>
         [HttpPost]
         [Authorize(Roles = Roles.Admin)]
         [ProducesResponseType(typeof(SubscriptionPlanResponse), StatusCodes.Status201Created)]
@@ -72,7 +69,6 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        /// <summary>Update a subscription plan (Admin only).</summary>
         [HttpPut("{id:int}")]
         [Authorize(Roles = Roles.Admin)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -102,7 +98,6 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        /// <summary>Delete a subscription plan (Admin only).</summary>
         [HttpDelete("{id:int}")]
         [Authorize(Roles = Roles.Admin)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

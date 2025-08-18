@@ -2,7 +2,7 @@ using BookLibwithSub.Repo.Entities;
 using BookLibwithSub.Repo.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace BookLibwithSub.Repo
+namespace BookLibwithSub.Repo.repository
 {
     public class BookRepository : IBookRepository
     {
@@ -35,7 +35,7 @@ namespace BookLibwithSub.Repo
         public async Task<IEnumerable<Book>> GetByExactTitleAsync(string title)
         {
             var t = title.Trim();
-            // DB collations are often case-insensitive, but normalize to be safe.
+
             return await _context.Books
                 .AsNoTracking()
                 .Where(b => b.Title.ToLower() == t.ToLower())
@@ -48,7 +48,7 @@ namespace BookLibwithSub.Repo
 
         public async Task<Book> AddAsync(Book entity)
         {
-            // Optional: guard unique ISBN (model has a unique index; this prevents DbUpdateException UX)
+
             if (await IsIsbnTakenAsync(entity.ISBN))
                 throw new InvalidOperationException($"ISBN '{entity.ISBN}' already exists.");
 
