@@ -117,6 +117,12 @@ namespace BookLibwithSub.Repo
                     .IsRequired()
                     .HasMaxLength(20);
 
+                entity.Property(b => b.CoverImage)
+                      .HasColumnType("varbinary(max)");
+
+                entity.Property(b => b.CoverImageContentType)
+                       .HasMaxLength(100);
+
                 entity.Property(b => b.Publisher)
                     .HasMaxLength(255);
 

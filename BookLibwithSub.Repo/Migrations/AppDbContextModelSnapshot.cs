@@ -38,6 +38,13 @@ namespace BookLibwithSub.Repo.Migrations
                     b.Property<int>("AvailableCopies")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("CoverImage")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("CoverImageContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("ISBN")
                         .IsRequired()
                         .HasMaxLength(20)

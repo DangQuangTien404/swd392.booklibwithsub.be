@@ -1,8 +1,13 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using BookLibwithSub.Repo.Entities;
-using BookLibwithSub.Repo.Interfaces;
 using BookLibwithSub.Service.Constants;
+using BookLibwithSub.Service.Interfaces;
 using BookLibwithSub.Service.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookLibwithSub.API.Controllers
@@ -11,27 +16,11 @@ namespace BookLibwithSub.API.Controllers
     [Route("api/[controller]")]
     public class BooksController : ControllerBase
     {
-        private readonly IBookRepository _repository;
-
-        public BooksController(IBookRepository repository)
-        {
-            _repository = repository;
-        }
+        private readonly IBookService _service;
+        public BooksController(IBookService service) => _service = service;
 
         private static BookResponse ToResponse(Book b) =>
             new(b.BookID, b.Title, b.AuthorName, b.ISBN, b.Publisher, b.PublishedYear, b.TotalCopies, b.AvailableCopies);
-
-        [HttpGet("by-title")]
-        [AllowAnonymous]
-        [ProducesResponseType(typeof(IEnumerable<BookResponse>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetByTitle([FromQuery] string title)
-        {
-
-            var (items, _) = await _repository.SearchAsync(title, 1, 100);
-            var matches = items.Where(b => string.Equals(b.Title, title, StringComparison.OrdinalIgnoreCase))
-                               .Select(ToResponse);
-            return Ok(matches);
-        }
 
         [HttpGet("{id:int}")]
         [AllowAnonymous]
@@ -39,16 +28,29 @@ namespace BookLibwithSub.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Get(int id)
         {
-            var book = await _repository.GetByIdAsync(id);
+            var book = await _service.GetByIdAsync(id);
             if (book == null) return NotFound();
             return Ok(ToResponse(book));
         }
 
+        [HttpGet("by-title")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(BookResponse[]), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetByTitle([FromQuery] string title)
+        {
+            var (items, _) = await _service.SearchAsync(title, 1, 100);
+            var matches = items
+                .Where(b => string.Equals(b.Title, title, StringComparison.OrdinalIgnoreCase))
+                .Select(ToResponse)
+                .ToArray();
+            return Ok(matches);
+        }
         [HttpPost]
         [Authorize(Roles = Roles.Admin)]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(BookResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Create([FromBody] CreateBookRequest req)
+        public async Task<IActionResult> Create([FromForm] CreateBookRequest req, IFormFile? cover)
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
@@ -63,10 +65,22 @@ namespace BookLibwithSub.API.Controllers
                 AvailableCopies = req.AvailableCopies
             };
 
+            byte[]? coverBytes = null;
+            string? contentType = null;
+
+            if (cover is not null && cover.Length > 0)
+            {
+                using var ms = new MemoryStream();
+                await cover.CopyToAsync(ms);
+                coverBytes = ms.ToArray();
+                contentType = string.IsNullOrWhiteSpace(cover.ContentType) ? "application/octet-stream" : cover.ContentType;
+            }
+
             try
             {
-                var created = await _repository.AddAsync(entity);
-                return CreatedAtAction(nameof(Get), new { id = created.BookID }, ToResponse(created));
+                var created = await _service.CreateAsync(entity, coverBytes, contentType);
+
+                return Created($"/api/books/{created.BookID}", ToResponse(created));
             }
             catch (Exception ex)
             {
@@ -76,14 +90,15 @@ namespace BookLibwithSub.API.Controllers
 
         [HttpPut("{id:int}")]
         [Authorize(Roles = Roles.Admin)]
+        [Consumes("multipart/form-data")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateBookRequest req)
+        public async Task<IActionResult> Update(int id, [FromForm] UpdateBookRequest req, IFormFile? cover)
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-            var existing = await _repository.GetByIdAsync(id);
+            var existing = await _service.GetByIdAsync(id);
             if (existing == null) return NotFound();
 
             existing.Title = req.Title;
@@ -94,9 +109,20 @@ namespace BookLibwithSub.API.Controllers
             existing.TotalCopies = req.TotalCopies;
             existing.AvailableCopies = req.AvailableCopies;
 
+            byte[]? coverBytes = null;
+            string? contentType = null;
+
+            if (cover is not null && cover.Length > 0)
+            {
+                using var ms = new MemoryStream();
+                await cover.CopyToAsync(ms);
+                coverBytes = ms.ToArray();
+                contentType = string.IsNullOrWhiteSpace(cover.ContentType) ? "application/octet-stream" : cover.ContentType;
+            }
+
             try
             {
-                await _repository.UpdateAsync(existing);
+                await _service.UpdateAsync(existing, coverBytes, contentType);
                 return NoContent();
             }
             catch (Exception ex)
@@ -111,10 +137,10 @@ namespace BookLibwithSub.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            var existing = await _repository.GetByIdAsync(id);
+            var existing = await _service.GetByIdAsync(id);
             if (existing == null) return NotFound();
 
-            await _repository.DeleteAsync(id);
+            await _service.DeleteAsync(id);
             return NoContent();
         }
     }

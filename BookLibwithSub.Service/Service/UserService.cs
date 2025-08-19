@@ -1,8 +1,7 @@
-using System.Threading.Tasks;
 using BookLibwithSub.Repo.Entities;
 using BookLibwithSub.Repo.Interfaces;
 using BookLibwithSub.Service.Interfaces;
-using BookLibwithSub.Service.Models;
+using BookLibwithSub.Service.Models.User;
 
 namespace BookLibwithSub.Service.Service
 {
@@ -14,25 +13,35 @@ namespace BookLibwithSub.Service.Service
 
         public UserService(
             IUserRepository userRepository,
-            ISubscriptionRepository subscriptionRepository,  
-            ISubscriptionPlanRepository subscriptionPlanRepository)  
+            ISubscriptionRepository subscriptionRepository,
+            ISubscriptionPlanRepository subscriptionPlanRepository)
         {
             _userRepository = userRepository;
-            _subscriptionRepository = subscriptionRepository;  
-            _subscriptionPlanRepository = subscriptionPlanRepository; 
+            _subscriptionRepository = subscriptionRepository;
+            _subscriptionPlanRepository = subscriptionPlanRepository;
         }
 
         public Task<User?> GetByIdAsync(int userId)
             => _userRepository.GetByIdAsync(userId);
 
-        public async Task UpdateProfileAsync(User updated)
-            => await _userRepository.UpdateAsync(updated);
+        public async Task UpdateProfileAsync(int userId, UpdateMeRequest req)
+        {
+            var user = await _userRepository.GetByIdAsync(userId)
+                       ?? throw new Exception("User not found.");
+
+            if (!string.IsNullOrWhiteSpace(req.FullName))
+                user.FullName = req.FullName.Trim();
+
+            if (!string.IsNullOrWhiteSpace(req.PhoneNumber))
+                user.PhoneNumber = req.PhoneNumber.Trim();
+
+            await _userRepository.UpdateAsync(user);
+        }
 
         public async Task<UserProfileDto> GetProfileAsync(int userId)
         {
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null)
-                throw new Exception("User not found.");
+            var user = await _userRepository.GetByIdAsync(userId)
+                       ?? throw new Exception("User not found.");
 
             var latest = await _subscriptionRepository.GetLatestByUserAsync(userId);
 
@@ -45,7 +54,10 @@ namespace BookLibwithSub.Service.Service
                     SubscriptionId = latest.SubscriptionID,
                     PlanName = plan?.PlanName ?? "Unknown",
                     Status = latest.Status,
-                    EndDate = latest.EndDate
+                    StartDate = latest.StartDate,
+                    EndDate = latest.EndDate,
+                    MaxPerDay = plan?.MaxPerDay ?? 0,
+                    MaxPerMonth = plan?.MaxPerMonth ?? 0
                 };
             }
 
@@ -54,6 +66,10 @@ namespace BookLibwithSub.Service.Service
                 UserId = user.UserID,
                 Username = user.Username,
                 Role = user.Role,
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                CreatedDate = user.CreatedDate,
                 CurrentSubscription = current
             };
         }

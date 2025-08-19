@@ -8,6 +8,7 @@ using BookLibwithSub.Repo.Interfaces;
 using BookLibwithSub.Service.Constants;
 using BookLibwithSub.Service.Interfaces;
 using BookLibwithSub.Service.Models;
+using BookLibwithSub.Service.Models.User;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -131,8 +132,14 @@ namespace BookLibwithSub.Service.Service
         }
         public async Task DeleteAccountAsync(int userId)
         {
-            await _userRepository.UpdateTokenAsync(userId, null);
-            await _userRepository.DeleteAsync(userId);
+            try
+            {
+                await _userRepository.DeleteAsync(userId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                throw new ApplicationException(ex.Message);
+            }
         }
     }
 }

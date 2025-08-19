@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookLibwithSub.Repo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250819131015_Init_V1")]
+    [Migration("20250819134024_Init_V1")]
     partial class Init_V1
     {
         /// <inheritdoc />
@@ -40,6 +40,13 @@ namespace BookLibwithSub.Repo.Migrations
 
                     b.Property<int>("AvailableCopies")
                         .HasColumnType("int");
+
+                    b.Property<byte[]>("CoverImage")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("CoverImageContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("ISBN")
                         .IsRequired()

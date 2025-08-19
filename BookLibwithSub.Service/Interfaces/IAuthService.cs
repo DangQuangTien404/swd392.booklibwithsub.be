@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using BookLibwithSub.Service.Models;
+using BookLibwithSub.Service.Models.User;
 
 namespace BookLibwithSub.Service.Interfaces
 {
