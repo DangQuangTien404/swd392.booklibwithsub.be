@@ -1,46 +1,48 @@
-<<<<<<< Updated upstream
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-=======
-﻿using System;
+using System;
 using System.Text;
 using System.Text.Json.Serialization;
+using BookLibwithSub.API.Middleware;
 using BookLibwithSub.Repo;
 using BookLibwithSub.Repo.Interfaces;
+using BookLibwithSub.Repo.repository;
 using BookLibwithSub.Service.Interfaces;
 using BookLibwithSub.Service.Models;
-using BookLibwithSub.API.Middleware;
+using BookLibwithSub.Service.Service;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using BookLibwithSub.Service.Service;
-using BookLibwithSub.Repo.repository;
-using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// -------------------- Database --------------------
 builder.Services.AddDbContext<AppDbContext>(opts =>
     opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// -------------------- DI: Repos & Services --------------------
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
+
 builder.Services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
 builder.Services.AddScoped<ISubscriptionPlanService, SubscriptionPlanService>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
+
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 builder.Services.AddScoped<ILoanService, LoanService>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
+
+// -------------------- ZaloPay --------------------
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IZaloPayService, ZaloPayService>();
 builder.Services.Configure<ZaloPayOptions>(builder.Configuration.GetSection("ZaloPay"));
 
+// -------------------- CORS --------------------
 const string CorsPolicy = "AppCors";
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins")
     .Get<string[]>() ?? new[] { "http://localhost:5173" };
@@ -50,6 +52,7 @@ builder.Services.AddCors(o => o.AddPolicy(
     p => p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()
 ));
 
+// -------------------- JWT --------------------
 var jwtOptions = new JwtOptions();
 builder.Configuration.GetSection("Jwt").Bind(jwtOptions);
 jwtOptions.Key = Environment.GetEnvironmentVariable("JWT__KEY") ?? jwtOptions.Key;
@@ -79,33 +82,65 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key ?? string.Empty))
         };
     });
+
 builder.Services.AddAuthorization();
 
+// -------------------- Controllers & JSON --------------------
 builder.Services.AddControllers().AddJsonOptions(o =>
 {
     o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;  
+    o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
->>>>>>> Stashed changes
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// -------------------- Swagger --------------------
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "BookLibWithSub API", Version = "v1" });
+
+    // Bearer auth in Swagger
+    var securityScheme = new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Enter JWT as: Bearer {token}",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+    };
+    c.AddSecurityDefinition("Bearer", securityScheme);
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement { { securityScheme, Array.Empty<string>() } });
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// -------------------- Pipeline --------------------
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
+else
+{
+    app.UseExceptionHandler("/error");
+}
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "BookLibWithSub API v1");
+});
 
 app.UseHttpsRedirection();
 
+app.UseCors(CorsPolicy);
+
+app.UseAuthentication();
+// If you have this middleware in your project, keep it. If not, remove the next line.
+app.UseMiddleware<TokenValidationMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGet("/", () => "BookLibWithSub API is running");
 
 app.Run();
