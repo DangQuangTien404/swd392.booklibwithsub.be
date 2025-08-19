@@ -12,12 +12,46 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using BookLibwithSub.Service.Service;
 using BookLibwithSub.Repo.repository;
+using Microsoft.Data.SqlClient; // <-- added
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<AppDbContext>(opts =>
-    opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// --- Connection string normalization (fix local TLS cert trust) ---
+var rawCnn = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? "Server=(localdb)\\MSSQLLocalDB;Database=BookLibDb;Trusted_Connection=True;MultipleActiveResultSets=true";
 
+var csb = new SqlConnectionStringBuilder(rawCnn);
+
+// Always encrypt unless caller explicitly turned it off
+// (Newer SQL client defaults to Encrypt=True, but we enforce it to be explicit)
+if (!csb.ContainsKey("Encrypt"))
+{
+    csb.Encrypt = true;
+}
+
+// On developer machines, skip CA validation if not already specified.
+// This prevents: "The certificate chain was issued by an authority that is not trusted."
+if (!csb.ContainsKey("TrustServerCertificate") && builder.Environment.IsDevelopment())
+{
+    csb.TrustServerCertificate = true;
+}
+
+// Helpful default for EF patterns that open multiple readers
+if (!csb.ContainsKey("MultipleActiveResultSets"))
+{
+    csb.MultipleActiveResultSets = true;
+}
+
+builder.Services.AddDbContext<AppDbContext>(opts =>
+    opts.UseSqlServer(
+        csb.ConnectionString,
+        sql =>
+        {
+            // Resilient connections (handy when DB restarts)
+            sql.EnableRetryOnFailure();
+        }));
+
+// --- DI registrations ---
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -70,12 +104,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key ?? string.Empty))
         };
     });
+
 builder.Services.AddAuthorization();
 
 builder.Services.AddControllers().AddJsonOptions(o =>
 {
     o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;  
+    o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -111,7 +146,10 @@ else
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "BookLibWithSub API v1");
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "BookLibWithSub API v1");
+    });
 });
 
 app.UseHttpsRedirection();
