@@ -27,9 +27,8 @@ namespace BookLibwithSub.API.Controllers
             if (userIdStr == null || !int.TryParse(userIdStr, out var userId))
                 return Unauthorized();
 
-            var user = await _userService.GetByIdAsync(userId);
-            if (user == null) return NotFound();
-            return Ok(user);
+            var profile = await _userService.GetProfileAsync(userId);
+            return Ok(profile);
         }
 
         [HttpPut("me")]

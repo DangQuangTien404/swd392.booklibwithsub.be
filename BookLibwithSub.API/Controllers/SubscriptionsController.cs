@@ -45,6 +45,21 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
+        [HttpGet("status")]
+        [Authorize(Roles = Roles.User)]
+        public async Task<IActionResult> MyStatus()
+        {
+            var sub =
+                User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ??
+                User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(sub, out var userId) || userId <= 0)
+                return Unauthorized(new { message = "Invalid token." });
+
+            var dto = await _subscriptionService.GetMyStatusAsync(userId);
+            return Ok(dto);
+        }
+
         [HttpPost("renew")]
         [Authorize(Roles = Roles.User)]
         public async Task<IActionResult> Renew()
