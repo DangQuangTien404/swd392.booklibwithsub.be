@@ -1,3 +1,8 @@
+<<<<<<< Updated upstream
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+=======
 ﻿using System;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -12,46 +17,13 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using BookLibwithSub.Service.Service;
 using BookLibwithSub.Repo.repository;
-using Microsoft.Data.SqlClient; // <-- added
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- Connection string normalization (fix local TLS cert trust) ---
-var rawCnn = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Server=(localdb)\\MSSQLLocalDB;Database=BookLibDb;Trusted_Connection=True;MultipleActiveResultSets=true";
-
-var csb = new SqlConnectionStringBuilder(rawCnn);
-
-// Always encrypt unless caller explicitly turned it off
-// (Newer SQL client defaults to Encrypt=True, but we enforce it to be explicit)
-if (!csb.ContainsKey("Encrypt"))
-{
-    csb.Encrypt = true;
-}
-
-// On developer machines, skip CA validation if not already specified.
-// This prevents: "The certificate chain was issued by an authority that is not trusted."
-if (!csb.ContainsKey("TrustServerCertificate") && builder.Environment.IsDevelopment())
-{
-    csb.TrustServerCertificate = true;
-}
-
-// Helpful default for EF patterns that open multiple readers
-if (!csb.ContainsKey("MultipleActiveResultSets"))
-{
-    csb.MultipleActiveResultSets = true;
-}
-
 builder.Services.AddDbContext<AppDbContext>(opts =>
-    opts.UseSqlServer(
-        csb.ConnectionString,
-        sql =>
-        {
-            // Resilient connections (handy when DB restarts)
-            sql.EnableRetryOnFailure();
-        }));
+    opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// --- DI registrations ---
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -65,7 +37,9 @@ builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 builder.Services.AddScoped<ILoanService, LoanService>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
-builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IZaloPayService, ZaloPayService>();
+builder.Services.Configure<ZaloPayOptions>(builder.Configuration.GetSection("ZaloPay"));
 
 const string CorsPolicy = "AppCors";
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins")
@@ -105,61 +79,33 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Key ?? string.Empty))
         };
     });
-
 builder.Services.AddAuthorization();
 
 builder.Services.AddControllers().AddJsonOptions(o =>
 {
     o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    o.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;  
 });
+>>>>>>> Stashed changes
 
+builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "BookLibWithSub API", Version = "v1" });
-
-    var securityScheme = new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Description = "Enter JWT as: Bearer {token}",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-    };
-    c.AddSecurityDefinition("Bearer", securityScheme);
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement { { securityScheme, Array.Empty<string>() } });
-});
+builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
-else
-{
-    app.UseExceptionHandler("/error");
-}
-
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "BookLibWithSub API v1");
-    });
-});
 
 app.UseHttpsRedirection();
-app.UseCors(CorsPolicy);
-app.UseAuthentication();
-app.UseMiddleware<TokenValidationMiddleware>();
+
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapGet("/", () => "BookLibWithSub API is running");
 
 app.Run();
