@@ -7,8 +7,6 @@ namespace BookLibwithSub.Service.Interfaces
         Task<IEnumerable<Book>> GetAllAsync();
         Task<(IEnumerable<Book> items, int total)> SearchAsync(string? q, int page, int pageSize);
         Task<Book?> GetByIdAsync(int id);
-
-        // coverBytes/contentType come from the controller (if any)
         Task<Book> CreateAsync(Book entity, byte[]? coverBytes, string? contentType);
         Task UpdateAsync(Book entity, byte[]? coverBytes, string? contentType);
         Task DeleteAsync(int id);
