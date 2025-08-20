@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace BookLibwithSub.Repo.Migrations
 {
-
+    /// <inheritdoc />
     public partial class Init_V1 : Migration
     {
-
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -23,7 +23,9 @@ namespace BookLibwithSub.Repo.Migrations
                     Publisher = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
                     PublishedYear = table.Column<int>(type: "int", nullable: false),
                     TotalCopies = table.Column<int>(type: "int", nullable: false),
-                    AvailableCopies = table.Column<int>(type: "int", nullable: false)
+                    AvailableCopies = table.Column<int>(type: "int", nullable: false),
+                    CoverImage = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
+                    CoverImageContentType = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -227,6 +229,7 @@ namespace BookLibwithSub.Repo.Migrations
                 unique: true);
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

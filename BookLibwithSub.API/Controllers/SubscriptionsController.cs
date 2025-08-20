@@ -15,13 +15,16 @@ namespace BookLibwithSub.API.Controllers
     {
         private readonly ISubscriptionPlanService _planService;
         private readonly ISubscriptionService _subscriptionService;
+        private readonly IZaloPayService _zaloPayService;
 
         public SubscriptionsController(
             ISubscriptionPlanService planService,
-            ISubscriptionService subscriptionService)
+            ISubscriptionService subscriptionService,
+            IZaloPayService zaloPayService)
         {
             _planService = planService;
             _subscriptionService = subscriptionService;
+            _zaloPayService = zaloPayService;
         }
 
         public class PurchaseRequest { public int PlanId { get; set; } }
@@ -37,12 +40,28 @@ namespace BookLibwithSub.API.Controllers
             try
             {
                 var transaction = await _subscriptionService.PurchaseAsync(userIdOpt.Value, request.PlanId);
-                return Ok(transaction);
+                var order = await _zaloPayService.CreateOrderAsync(transaction.TransactionID, userIdOpt.Value);
+                return Ok(new { transactionId = transaction.TransactionID, order });
             }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        [HttpGet("status")]
+        [Authorize(Roles = Roles.User)]
+        public async Task<IActionResult> MyStatus()
+        {
+            var sub =
+                User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value ??
+                User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(sub, out var userId) || userId <= 0)
+                return Unauthorized(new { message = "Invalid token." });
+
+            var dto = await _subscriptionService.GetMyStatusAsync(userId);
+            return Ok(dto);
         }
 
         [HttpPost("renew")]
@@ -56,7 +75,8 @@ namespace BookLibwithSub.API.Controllers
             try
             {
                 var transaction = await _subscriptionService.RenewAsync(userIdOpt.Value);
-                return Ok(transaction);
+                var order = await _zaloPayService.CreateOrderAsync(transaction.TransactionID, userIdOpt.Value);
+                return Ok(new { transactionId = transaction.TransactionID, order });
             }
             catch (InvalidOperationException ex)
             {

@@ -1,5 +1,6 @@
-using System.Threading.Tasks;
 using BookLibwithSub.Repo.Entities;
+using BookLibwithSub.Service.Models;
+using System.Threading.Tasks;
 
 namespace BookLibwithSub.Service.Interfaces
 {
@@ -7,5 +8,7 @@ namespace BookLibwithSub.Service.Interfaces
     {
         Task<Transaction> PurchaseAsync(int userId, int planId);
         Task<Transaction> RenewAsync(int userId);
+        Task<SubscriptionStatusDto> GetMyStatusAsync(int userId);
+
     }
 }

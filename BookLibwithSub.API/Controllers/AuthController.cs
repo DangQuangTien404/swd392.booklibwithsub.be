@@ -3,6 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Threading.Tasks;
 using BookLibwithSub.Service.Interfaces;
 using BookLibwithSub.Service.Models;
+using BookLibwithSub.Service.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
