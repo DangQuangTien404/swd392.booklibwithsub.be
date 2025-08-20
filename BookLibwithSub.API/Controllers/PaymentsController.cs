@@ -19,6 +19,7 @@ namespace BookLibwithSub.API.Controllers
             _zaloPayService = zaloPayService;
         }
 
+<<<<<<< Updated upstream
         public class WebhookRequest
         {
             public int TransactionId { get; set; }
@@ -32,6 +33,8 @@ namespace BookLibwithSub.API.Controllers
             return Ok();
         }
 
+=======
+>>>>>>> Stashed changes
         [HttpPost("zalo/create-order/{transactionId}")]
         [Authorize]
         public async Task<IActionResult> CreateZaloOrder([FromRoute] int transactionId)
