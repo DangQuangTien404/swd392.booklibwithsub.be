@@ -4,6 +4,7 @@ namespace BookLibwithSub.Service.Interfaces
 {
     public interface IBookService
     {
+        Task<IEnumerable<Book>> GetAllAsync();
         Task<(IEnumerable<Book> items, int total)> SearchAsync(string? q, int page, int pageSize);
         Task<Book?> GetByIdAsync(int id);
 

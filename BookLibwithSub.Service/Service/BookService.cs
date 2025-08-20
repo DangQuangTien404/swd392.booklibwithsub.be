@@ -9,6 +9,11 @@ namespace BookLibwithSub.Service.Service
         private readonly IBookRepository _repo;
         public BookService(IBookRepository repo) => _repo = repo;
 
+        public async Task<IEnumerable<Book>> GetAllAsync()
+        {
+            return await _repo.GetAllAsync();
+        }
+
         public Task<(IEnumerable<Book> items, int total)> SearchAsync(string? q, int page, int pageSize)
             => _repo.SearchAsync(q, page, pageSize);
 
