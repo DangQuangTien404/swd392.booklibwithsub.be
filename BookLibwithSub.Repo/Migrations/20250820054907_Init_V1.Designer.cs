@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookLibwithSub.Repo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250820053550_Init_V1")]
+    [Migration("20250820054907_Init_V1")]
     partial class Init_V1
     {
         /// <inheritdoc />
@@ -197,7 +197,7 @@ namespace BookLibwithSub.Repo.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric(18,2)");
 
                     b.HasKey("SubscriptionPlanID");
 
@@ -216,7 +216,7 @@ namespace BookLibwithSub.Repo.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TransactionID"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<string>("Status")
                         .IsRequired()
