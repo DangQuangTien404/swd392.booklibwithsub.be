@@ -101,23 +101,23 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        //[HttpDelete("users/{id:int}")]
-        //[AllowAnonymous] 
-        //public async Task<IActionResult> DeleteAccount(int id)
-        //{
-        //    try
-        //    {
-        //        await _authService.DeleteAccountAsync(id);
-        //        return NoContent();
-        //    }
-        //    catch (InvalidOperationException ex)
-        //    {
-        //        return NotFound(new { message = ex.Message });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return BadRequest(new { message = ex.Message });
-        //    }
-        //}
+        [HttpDelete("users/{id:int}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> DeleteAccount(int id)
+        {
+            try
+            {
+                await _authService.DeleteAccountAsync(id);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }
