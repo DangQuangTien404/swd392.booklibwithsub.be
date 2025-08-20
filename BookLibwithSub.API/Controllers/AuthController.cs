@@ -56,27 +56,27 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        [HttpPost("logout")]
-        [AllowAnonymous] 
-        public async Task<IActionResult> Logout()
-        {
+        //[HttpPost("logout")]
+        //[AllowAnonymous] 
+        //public async Task<IActionResult> Logout()
+        //{
 
 
-            try
-            {
-                var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-                if (int.TryParse(userIdClaim, out var userId))
-                {
-                    await _authService.LogoutAsync(userId);
-                }
+        //    try
+        //    {
+        //        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        //        if (int.TryParse(userIdClaim, out var userId))
+        //        {
+        //            await _authService.LogoutAsync(userId);
+        //        }
 
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+        //        return Ok();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { message = ex.Message });
+        //    }
+        //}
 
 
         [HttpPut("users/{id:int}")]
@@ -101,23 +101,23 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        [HttpDelete("users/{id:int}")]
-        [AllowAnonymous] 
-        public async Task<IActionResult> DeleteAccount(int id)
-        {
-            try
-            {
-                await _authService.DeleteAccountAsync(id);
-                return NoContent();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+        //[HttpDelete("users/{id:int}")]
+        //[AllowAnonymous] 
+        //public async Task<IActionResult> DeleteAccount(int id)
+        //{
+        //    try
+        //    {
+        //        await _authService.DeleteAccountAsync(id);
+        //        return NoContent();
+        //    }
+        //    catch (InvalidOperationException ex)
+        //    {
+        //        return NotFound(new { message = ex.Message });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { message = ex.Message });
+        //    }
+        //}
     }
 }
