@@ -45,7 +45,7 @@ builder.Services.Configure<ZaloPayOptions>(builder.Configuration.GetSection("Zal
 // -------------------- CORS --------------------
 const string CorsPolicy = "AppCors";
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins")
-    .Get<string[]>() ?? new[] { "http://localhost:5173" };
+    .Get<string[]>() ?? new[] { "http://localhost:5173", "http://localhost:3000" };
 
 builder.Services.AddCors(o => o.AddPolicy(
     CorsPolicy,
