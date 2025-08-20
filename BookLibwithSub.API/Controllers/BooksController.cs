@@ -38,10 +38,9 @@ namespace BookLibwithSub.API.Controllers
         [ProducesResponseType(typeof(BookResponse[]), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetByTitle([FromQuery] string title)
         {
-            var trimmedTitle = title.Trim();
-            var (items, _) = await _service.SearchAsync(trimmedTitle, 1, 100);
+            var (items, _) = await _service.SearchAsync(title, 1, 100);
             var matches = items
-                .Where(b => string.Equals(b.Title, trimmedTitle, StringComparison.OrdinalIgnoreCase))
+                .Where(b => string.Equals(b.Title, title, StringComparison.OrdinalIgnoreCase))
                 .Select(ToResponse)
                 .ToArray();
             return Ok(matches);
