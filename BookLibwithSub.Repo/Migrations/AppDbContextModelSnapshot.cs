@@ -18,17 +18,19 @@ namespace BookLibwithSub.Repo.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.19")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
-
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+                .HasAnnotation("Relational:MaxIdentifierLength", 128)
+                .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.Book", b =>
                 {
                     b.Property<int>("BookID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookID"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<string>("AuthorName")
                         .IsRequired()
@@ -68,7 +70,7 @@ namespace BookLibwithSub.Repo.Migrations
 
                     b.HasKey("BookID");
 
-                    b.ToTable("Books", t =>
+                    b.ToTable("Books", null, t =>
                         {
                             t.HasCheckConstraint("CK_Book_Copies", "[TotalCopies] >= 0 AND [AvailableCopies] >= 0 AND [AvailableCopies] <= [TotalCopies]");
                         });
@@ -78,9 +80,10 @@ namespace BookLibwithSub.Repo.Migrations
                 {
                     b.Property<int>("LoanID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LoanID"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("LoanDate")
                         .HasColumnType("datetime2");
@@ -100,16 +103,17 @@ namespace BookLibwithSub.Repo.Migrations
 
                     b.HasIndex("SubscriptionID");
 
-                    b.ToTable("Loans");
+                    b.ToTable("Loans", (string)null);
                 });
 
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.LoanItem", b =>
                 {
                     b.Property<int>("LoanItemID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("LoanItemID"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<int>("BookID")
                         .HasColumnType("int");
@@ -134,16 +138,17 @@ namespace BookLibwithSub.Repo.Migrations
 
                     b.HasIndex("LoanID", "BookID");
 
-                    b.ToTable("LoanItems");
+                    b.ToTable("LoanItems", (string)null);
                 });
 
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.Subscription", b =>
                 {
                     b.Property<int>("SubscriptionID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubscriptionID"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
@@ -168,16 +173,17 @@ namespace BookLibwithSub.Repo.Migrations
 
                     b.HasIndex("UserID");
 
-                    b.ToTable("Subscriptions");
+                    b.ToTable("Subscriptions", (string)null);
                 });
 
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.SubscriptionPlan", b =>
                 {
                     b.Property<int>("SubscriptionPlanID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubscriptionPlanID"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<int>("DurationDays")
                         .HasColumnType("int");
@@ -198,7 +204,7 @@ namespace BookLibwithSub.Repo.Migrations
 
                     b.HasKey("SubscriptionPlanID");
 
-                    b.ToTable("SubscriptionPlans", t =>
+                    b.ToTable("SubscriptionPlans", null, t =>
                         {
                             t.HasCheckConstraint("CK_SubscriptionPlan_Quotas", "[DurationDays] > 0 AND [MaxPerDay] >= 0 AND [MaxPerMonth] >= 0");
                         });
@@ -208,9 +214,10 @@ namespace BookLibwithSub.Repo.Migrations
                 {
                     b.Property<int>("TransactionID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransactionID"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
@@ -242,16 +249,17 @@ namespace BookLibwithSub.Repo.Migrations
 
                     b.HasIndex("UserID");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.User", b =>
                 {
                     b.Property<int>("UserID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserID"));
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:IdentityIncrement", 1)
+                        .HasAnnotation("SqlServer:IdentitySeed", 1L)
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
                     b.Property<DateTime>("CreatedDate")
                         .ValueGeneratedOnAdd()
@@ -300,7 +308,7 @@ namespace BookLibwithSub.Repo.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("BookLibwithSub.Repo.Entities.Loan", b =>
