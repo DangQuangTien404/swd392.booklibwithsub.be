@@ -53,8 +53,8 @@ namespace BookLibwithSub.Repo
                     .HasMaxLength(500);
 
                 entity.Property(u => u.CreatedDate)
-                    .HasColumnType("datetime2")
-                    .HasDefaultValueSql("GETUTCDATE()");
+                    .HasColumnType("timestamp with time zone")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
 
             modelBuilder.Entity<SubscriptionPlan>(entity =>
@@ -74,13 +74,13 @@ namespace BookLibwithSub.Repo
                     .IsRequired();
 
                 entity.Property(p => p.Price)
-                    .HasColumnType("decimal(18,2)")
+                    .HasColumnType("numeric(18,2)")
                     .IsRequired();
 
                 entity.ToTable(t =>
                 {
                     t.HasCheckConstraint("CK_SubscriptionPlan_Quotas",
-                        "[DurationDays] > 0 AND [MaxPerDay] >= 0 AND [MaxPerMonth] >= 0");
+                        "\"DurationDays\" > 0 AND \"MaxPerDay\" >= 0 AND \"MaxPerMonth\" >= 0");
                 });
             });
 
@@ -118,7 +118,7 @@ namespace BookLibwithSub.Repo
                     .HasMaxLength(20);
 
                 entity.Property(b => b.CoverImage)
-                      .HasColumnType("varbinary(max)");
+                      .HasColumnType("bytea");
 
                 entity.Property(b => b.CoverImageContentType)
                        .HasMaxLength(100);
@@ -138,7 +138,7 @@ namespace BookLibwithSub.Repo
                 entity.ToTable(t =>
                 {
                     t.HasCheckConstraint("CK_Book_Copies",
-                        "[TotalCopies] >= 0 AND [AvailableCopies] >= 0 AND [AvailableCopies] <= [TotalCopies]");
+                        "\"TotalCopies\" >= 0 AND \"AvailableCopies\" >= 0 AND \"AvailableCopies\" <= \"TotalCopies\"");
                 });
             });
 
@@ -194,12 +194,12 @@ namespace BookLibwithSub.Repo
                     .HasMaxLength(50);
 
                 entity.Property(t => t.Amount)
-                    .HasColumnType("decimal(18,2)")
+                    .HasColumnType("numeric(18,2)")
                     .IsRequired();
 
                 entity.Property(t => t.TransactionDate)
-                    .HasColumnType("datetime2")
-                    .HasDefaultValueSql("GETUTCDATE()");
+                    .HasColumnType("timestamp with time zone")
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                 entity.Property(t => t.Status)
                     .IsRequired()
