@@ -6,6 +6,7 @@ namespace BookLibwithSub.Repo.Interfaces
 {
     public interface IBookRepository
     {
+        Task<List<Book>> GetAllAsync();
 
         Task<(IEnumerable<Book> items, int total)> SearchAsync(string? q, int page, int pageSize);
 

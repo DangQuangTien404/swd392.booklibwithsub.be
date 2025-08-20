@@ -22,6 +22,15 @@ namespace BookLibwithSub.API.Controllers
         private static BookResponse ToResponse(Book b) =>
             new(b.BookID, b.Title, b.AuthorName, b.ISBN, b.Publisher, b.PublishedYear, b.TotalCopies, b.AvailableCopies);
 
+        [HttpGet]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(IEnumerable<BookResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAll()
+        {
+            var books = await _service.GetAllAsync();
+            return Ok(books.Select(ToResponse));
+        }
+
         [HttpGet("{id:int}")]
         [AllowAnonymous]
         [ProducesResponseType(typeof(BookResponse), StatusCodes.Status200OK)]

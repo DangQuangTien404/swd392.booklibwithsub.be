@@ -9,6 +9,15 @@ namespace BookLibwithSub.Repo.repository
         private readonly AppDbContext _context;
         public BookRepository(AppDbContext context) => _context = context;
 
+        public async Task<List<Book>> GetAllAsync()
+        {
+            return await _context.Books
+                .AsNoTracking()
+                .OrderBy(b => b.Title)
+                .ThenBy(b => b.BookID)
+                .ToListAsync();
+        }
+
         public async Task<(IEnumerable<Book> items, int total)> SearchAsync(string? q, int page, int pageSize)
         {
             var query = _context.Books.AsNoTracking();
