@@ -22,11 +22,16 @@ namespace BookLibwithSub.API.Controllers
         }
 
         [HttpPost("webhook")]
-        [AllowAnonymous]
-        public async Task<IActionResult> Webhook([FromBody] WebhookRequest request)
+        public async Task<IActionResult> Webhook([FromBody] WebhookRequest request, [FromHeader] string signature)
         {
+            if (!ValidateSignature(request, signature)) return Unauthorized();
             await _paymentService.MarkTransactionPaidAsync(request.TransactionId);
             return Ok();
         }
+        private bool ValidateSignature(object request, string signature)
+        {
+             return signature == "my-secret";
+        }
+
     }
 }
