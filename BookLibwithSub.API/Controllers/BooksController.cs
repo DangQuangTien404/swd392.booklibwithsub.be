@@ -26,13 +26,34 @@ namespace BookLibwithSub.API.Controllers
             new(b.BookID, b.Title, b.AuthorName, b.ISBN, b.Publisher, b.PublishedYear,
                 b.TotalCopies, b.AvailableCopies, b.CoverImage, b.CoverImageContentType);
 
+        [HttpGet("{id:int}/cover")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCover(int id)
+        {
+            var book = await _service.GetByIdAsync(id);
+            if (book == null || book.CoverImage == null || book.CoverImage.Length == 0)
+                return NotFound();
+
+            var contentType = string.IsNullOrWhiteSpace(book.CoverImageContentType)
+                ? "application/octet-stream"
+                : book.CoverImageContentType;
+
+            Response.Headers["Cache-Control"] = "public, max-age=86400"; 
+
+            return File(book.CoverImage, contentType);
+        }
+
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(typeof(IEnumerable<BookResponse>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] bool includeImages = false)
         {
             var books = await _service.GetAllAsync();
-            return Ok(books.Select(ToResponse));
+
+            if (!includeImages)
+                return Ok(books.Select(ToResponse));
+            var detailed = books.Select(ToDetailResponse);
+            return Ok(detailed);
         }
 
         [HttpGet("{id:int}")]
