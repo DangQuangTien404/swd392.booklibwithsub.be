@@ -53,7 +53,6 @@ var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins")
         "https://swd392-booklibwithsub-fe.vercel.app"
     };
 
-
 builder.Services.AddCors(o => o.AddPolicy(
     CorsPolicy,
     p => p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()
