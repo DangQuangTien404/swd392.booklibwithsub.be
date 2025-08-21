@@ -25,8 +25,7 @@ namespace BookLibwithSub.Repo.Migrations
                     PublishedYear = table.Column<int>(type: "integer", nullable: false),
                     TotalCopies = table.Column<int>(type: "integer", nullable: false),
                     AvailableCopies = table.Column<int>(type: "integer", nullable: false),
-                    CoverImage = table.Column<byte[]>(type: "bytea", nullable: true),
-                    CoverImageContentType = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true)
+                    CoverImageUrl = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -181,6 +180,12 @@ namespace BookLibwithSub.Repo.Migrations
                         principalColumn: "LoanID",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Books_ISBN",
+                table: "Books",
+                column: "ISBN",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_LoanItems_BookID",
