@@ -46,7 +46,7 @@ builder.Services.Configure<ZaloPayOptions>(builder.Configuration.GetSection("Zal
 // -------------------- CORS --------------------
 const string CorsPolicy = "AppCors";
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins")
-    .Get<string[]>() ?? new[] { "http://localhost:5173", "http://localhost:3000", "https://swd392-booklibwithsub-fe.vercel.app/" };
+    .Get<string[]>() ?? new[] { "http://localhost:5173", "http://localhost:3000", "https://swd392-booklibwithsub-fe.vercel.app" };
 
 builder.Services.AddCors(o => o.AddPolicy(
     CorsPolicy,
