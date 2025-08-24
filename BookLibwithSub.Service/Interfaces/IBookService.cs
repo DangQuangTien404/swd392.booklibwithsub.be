@@ -1,15 +1,15 @@
-﻿using BookLibwithSub.Repo.Entities;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using BookLibwithSub.Repo.Entities;
 
 namespace BookLibwithSub.Service.Interfaces
 {
     public interface IBookService
     {
-        Task<(IEnumerable<Book> items, int total)> SearchAsync(string? q, int page, int pageSize);
+        Task<IEnumerable<Book>> GetAllAsync();
         Task<Book?> GetByIdAsync(int id);
-
-        // coverBytes/contentType come from the controller (if any)
-        Task<Book> CreateAsync(Book entity, byte[]? coverBytes, string? contentType);
-        Task UpdateAsync(Book entity, byte[]? coverBytes, string? contentType);
-        Task DeleteAsync(int id);
+        Task<Book> CreateAsync(Book entity);
+        Task<Book?> UpdateAsync(int id, Book updated);
+        Task<bool> DeleteAsync(int id);
     }
 }

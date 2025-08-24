@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BookLibwithSub.Repo.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250820054907_Init_V1")]
+    [Migration("20250821095235_Init_V1")]
     partial class Init_V1
     {
         /// <inheritdoc />
@@ -41,12 +41,9 @@ namespace BookLibwithSub.Repo.Migrations
                     b.Property<int>("AvailableCopies")
                         .HasColumnType("integer");
 
-                    b.Property<byte[]>("CoverImage")
-                        .HasColumnType("bytea");
-
-                    b.Property<string>("CoverImageContentType")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                    b.Property<string>("CoverImageUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<string>("ISBN")
                         .IsRequired()
@@ -70,6 +67,9 @@ namespace BookLibwithSub.Repo.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("BookID");
+
+                    b.HasIndex("ISBN")
+                        .IsUnique();
 
                     b.ToTable("Books", t =>
                         {

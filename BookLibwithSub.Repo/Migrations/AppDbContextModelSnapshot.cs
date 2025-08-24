@@ -38,12 +38,9 @@ namespace BookLibwithSub.Repo.Migrations
                     b.Property<int>("AvailableCopies")
                         .HasColumnType("integer");
 
-                    b.Property<byte[]>("CoverImage")
-                        .HasColumnType("bytea");
-
-                    b.Property<string>("CoverImageContentType")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                    b.Property<string>("CoverImageUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<string>("ISBN")
                         .IsRequired()
@@ -67,6 +64,9 @@ namespace BookLibwithSub.Repo.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("BookID");
+
+                    b.HasIndex("ISBN")
+                        .IsUnique();
 
                     b.ToTable("Books", t =>
                         {
