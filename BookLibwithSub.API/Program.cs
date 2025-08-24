@@ -46,11 +46,20 @@ builder.Services.Configure<VNPayOptions>(builder.Configuration.GetSection("VNPay
 // -------------------- CORS --------------------
 const string CorsPolicy = "AppCors";
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins")
-    .Get<string[]>() ?? new[] { "http://localhost:5173", "http://localhost:3000" };
+    .Get<string[]>()
+    ?? new[]
+    {
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://swd392-booklibwithsub-fe.vercel.app"
+    };
 
 builder.Services.AddCors(o => o.AddPolicy(
     CorsPolicy,
-    p => p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod()
+    p => p.WithOrigins(allowedOrigins)
+          .AllowAnyHeader()
+          .AllowAnyMethod()
+          .AllowCredentials() // important for Authorization headers / cookies
 ));
 
 // -------------------- JWT --------------------
@@ -134,10 +143,12 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 
+app.UseRouting();
+
+// CORS must come before Authentication/Authorization
 app.UseCors(CorsPolicy);
 
 app.UseAuthentication();
-// If you have this middleware in your project, keep it. If not, remove the next line.
 app.UseMiddleware<TokenValidationMiddleware>();
 app.UseAuthorization();
 
