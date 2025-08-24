@@ -3,6 +3,7 @@ using BookLibwithSub.Service.Interfaces;
 using BookLibwithSub.Service.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace BookLibwithSub.API.Controllers
 {
@@ -11,49 +12,46 @@ namespace BookLibwithSub.API.Controllers
     public class PaymentsController : ControllerBase
     {
         private readonly IPaymentService _paymentService;
-        private readonly IZaloPayService _zaloPayService;
+        private readonly IVNPayService _vnPayService;
+        private readonly VNPayOptions _vnPayOptions;
 
-        public PaymentsController(IPaymentService paymentService, IZaloPayService zaloPayService)
+        public PaymentsController(IPaymentService paymentService, IVNPayService vnPayService, IOptions<VNPayOptions> vnPayOptions)
         {
             _paymentService = paymentService;
-            _zaloPayService = zaloPayService;
+            _vnPayService = vnPayService;
+            _vnPayOptions = vnPayOptions.Value;
         }
 
-        public class WebhookRequest
-        {
-            public int TransactionId { get; set; }
-        }
-
-        [HttpPost("webhook")]
-        public async Task<IActionResult> Webhook([FromBody] WebhookRequest request, [FromHeader] string signature)
-        {
-            if (!ValidateSignature(request, signature)) return Unauthorized();
-            await _paymentService.MarkTransactionPaidAsync(request.TransactionId);
-            return Ok();
-        }
-        private bool ValidateSignature(object request, string signature)
-        {
-             return signature == "my-secret";
-        }
-
-
-        [HttpPost("zalo/create-order/{transactionId}")]
+        [HttpPost("vnpay/create-order/{transactionId}")]
         [Authorize]
-        public async Task<IActionResult> CreateZaloOrder([FromRoute] int transactionId)
+        public async Task<IActionResult> CreateVNPayOrder([FromRoute] int transactionId)
         {
             var userId = GetUserId();
             if (userId == null) return Unauthorized();
-            var result = await _zaloPayService.CreateOrderAsync(transactionId, userId.Value);
+            var result = await _vnPayService.CreateOrderAsync(transactionId, userId.Value);
             return Ok(result);
         }
 
-        [HttpPost("zalo/callback")]
+        [HttpPost("vnpay/callback")]
         [AllowAnonymous]
-        public async Task<IActionResult> ZaloCallback([FromForm] ZaloPayCallbackRequest request)
+        public async Task<IActionResult> VNPayCallback([FromForm] VNPayCallbackRequest request)
         {
-            var result = await _zaloPayService.HandleCallbackAsync(request);
+            var result = await _vnPayService.HandleCallbackAsync(request);
             if (!result.Success) return Ok(new { return_code = -1, return_message = result.Message });
             return Ok(new { return_code = 1, return_message = "success" });
+        }
+
+        [HttpGet("vnpay/return")]
+        [AllowAnonymous]
+        public async Task<IActionResult> VNPayReturn([FromQuery] VNPayCallbackRequest request)
+        {
+            var result = await _vnPayService.HandleCallbackAsync(request);
+            if (!result.Success)
+            {
+                return Redirect($"{_vnPayOptions.ReturnUrl}?status=failed&message={Uri.EscapeDataString(result.Message)}");
+            }
+            
+            return Redirect($"{_vnPayOptions.ReturnUrl}?status=success&transactionId={result.TransactionId}");
         }
 
         private int? GetUserId()

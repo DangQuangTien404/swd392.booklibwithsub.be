@@ -15,16 +15,16 @@ namespace BookLibwithSub.API.Controllers
     {
         private readonly ISubscriptionPlanService _planService;
         private readonly ISubscriptionService _subscriptionService;
-        private readonly IZaloPayService _zaloPayService;
+        private readonly IVNPayService _vnPayService;
 
         public SubscriptionsController(
             ISubscriptionPlanService planService,
             ISubscriptionService subscriptionService,
-            IZaloPayService zaloPayService)
+            IVNPayService vnPayService)
         {
             _planService = planService;
             _subscriptionService = subscriptionService;
-            _zaloPayService = zaloPayService;
+            _vnPayService = vnPayService;
         }
 
         public class PurchaseRequest { public int PlanId { get; set; } }
@@ -40,7 +40,7 @@ namespace BookLibwithSub.API.Controllers
             try
             {
                 var transaction = await _subscriptionService.PurchaseAsync(userIdOpt.Value, request.PlanId);
-                var order = await _zaloPayService.CreateOrderAsync(transaction.TransactionID, userIdOpt.Value);
+                var order = await _vnPayService.CreateOrderAsync(transaction.TransactionID, userIdOpt.Value);
                 return Ok(new { transactionId = transaction.TransactionID, order });
             }
             catch (InvalidOperationException ex)
@@ -75,7 +75,7 @@ namespace BookLibwithSub.API.Controllers
             try
             {
                 var transaction = await _subscriptionService.RenewAsync(userIdOpt.Value);
-                var order = await _zaloPayService.CreateOrderAsync(transaction.TransactionID, userIdOpt.Value);
+                var order = await _vnPayService.CreateOrderAsync(transaction.TransactionID, userIdOpt.Value);
                 return Ok(new { transactionId = transaction.TransactionID, order });
             }
             catch (InvalidOperationException ex)

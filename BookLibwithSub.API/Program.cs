@@ -38,10 +38,10 @@ builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 builder.Services.AddScoped<ILoanService, LoanService>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 
-// -------------------- ZaloPay --------------------
+// -------------------- VNPay --------------------
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<IZaloPayService, ZaloPayService>();
-builder.Services.Configure<ZaloPayOptions>(builder.Configuration.GetSection("ZaloPay"));
+builder.Services.AddScoped<IVNPayService, VNPayService>();
+builder.Services.Configure<VNPayOptions>(builder.Configuration.GetSection("VNPay"));
 
 // -------------------- CORS --------------------
 const string CorsPolicy = "AppCors";
