@@ -14,7 +14,10 @@ namespace BookLibwithSub.Service.Service
         private readonly ILoanRepository _loanRepo;
         private readonly IPaymentService _paymentService;
 
-        public LoanService(ISubscriptionRepository subscriptionRepo, ILoanRepository loanRepo, IPaymentService paymentService)
+        public LoanService(
+            ISubscriptionRepository subscriptionRepo,
+            ILoanRepository loanRepo,
+            IPaymentService paymentService)
         {
             _subscriptionRepo = subscriptionRepo;
             _loanRepo = loanRepo;
@@ -29,15 +32,20 @@ namespace BookLibwithSub.Service.Service
             if (subscription.Status != "Active" ||
                 subscription.StartDate > DateTime.UtcNow ||
                 subscription.EndDate < DateTime.UtcNow)
+            {
                 throw new InvalidOperationException("Subscription is not active or out of date range");
+            }
+            var hasActiveLoans = (await _loanRepo.GetActiveLoansByUserAsync(subscription.UserID)).Any();
+            if (hasActiveLoans)
+                throw new InvalidOperationException("You must return your borrowed books before creating a new loan.");
 
             var plan = subscription.SubscriptionPlan
                 ?? throw new InvalidOperationException("Subscription plan missing");
 
             var now = DateTime.UtcNow;
-            var dayStart = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
+            var dayStart = now.Date;
             var dayEnd = dayStart.AddDays(1);
-            var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var monthStart = new DateTime(now.Year, now.Month, 1);
             var monthEnd = monthStart.AddMonths(1);
 
             int alreadyToday = await _loanRepo.CountLoanItemsAsync(subscriptionId, dayStart, dayEnd);
@@ -65,7 +73,6 @@ namespace BookLibwithSub.Service.Service
 
             await _loanRepo.AddAsync(loan);
 
-            // EF populated LoanID; re-read with items & plan
             var loaded = await _loanRepo.GetByIdAsync(loan.LoanID)
                          ?? throw new InvalidOperationException("Created loan not found");
             return loaded;
@@ -82,15 +89,17 @@ namespace BookLibwithSub.Service.Service
             if (subscription.Status != "Active" ||
                 subscription.StartDate > DateTime.UtcNow ||
                 subscription.EndDate < DateTime.UtcNow)
+            {
                 throw new InvalidOperationException("Subscription is not active or out of date range");
+            }
 
             var plan = subscription.SubscriptionPlan
                 ?? throw new InvalidOperationException("Subscription plan missing");
 
             var now = DateTime.UtcNow;
-            var dayStart = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
+            var dayStart = now.Date;
             var dayEnd = dayStart.AddDays(1);
-            var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var monthStart = new DateTime(now.Year, now.Month, 1);
             var monthEnd = monthStart.AddMonths(1);
 
             int alreadyToday = await _loanRepo.CountLoanItemsAsync(subscription.SubscriptionID, dayStart, dayEnd);
@@ -112,7 +121,6 @@ namespace BookLibwithSub.Service.Service
 
             await _loanRepo.AddItemsAsync(loan, items);
 
-            // Reload with fresh items
             var loaded = await _loanRepo.GetByIdAsync(loan.LoanID)
                          ?? throw new InvalidOperationException("Updated loan not found");
             return loaded;

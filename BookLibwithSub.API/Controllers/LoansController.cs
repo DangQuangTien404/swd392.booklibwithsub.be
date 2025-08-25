@@ -59,12 +59,42 @@ namespace BookLibwithSub.API.Controllers
 
         // POST /api/loans  -> return created loan
         [HttpPost]
+        [Authorize(Roles = Roles.User)]
         public async Task<IActionResult> Borrow([FromBody] BorrowRequest request)
         {
-            if (!TryGetUserId(out _)) return Unauthorized();
-            var loan = await _loanService.BorrowAsync(request.SubscriptionId, request.BookIds);
-            return CreatedAtAction(nameof(GetLoan), new { loanId = loan.LoanID }, MapLoan(loan));
+            try
+            {
+                var loan = await _loanService.BorrowAsync(request.SubscriptionId, request.BookIds);
+
+                // Return a clean payload instead of empty 200
+                return Ok(new
+                {
+                    message = "Loan created successfully",
+                    loanId = loan.LoanID,
+                    subscriptionId = loan.SubscriptionID,
+                    status = loan.Status,
+                    loanDate = loan.LoanDate,
+                    items = loan.LoanItems.Select(li => new
+                    {
+                        li.LoanItemID,
+                        li.BookID,
+                        li.DueDate,
+                        li.Status
+                    })
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Handle business rule violations (like active loan exists, quota exceeded, etc.)
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                // Handle unexpected errors gracefully
+                return StatusCode(500, new { message = "An unexpected error occurred while borrowing." });
+            }
         }
+
 
         // POST /api/loans/{loanId}/items -> return updated loan
         [HttpPost("{loanId:int}/items")]

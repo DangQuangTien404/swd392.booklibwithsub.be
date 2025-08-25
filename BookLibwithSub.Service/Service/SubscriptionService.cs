@@ -1,9 +1,9 @@
+using System;
+using System.Threading.Tasks;
 using BookLibwithSub.Repo.Entities;
 using BookLibwithSub.Repo.Interfaces;
 using BookLibwithSub.Service.Interfaces;
 using BookLibwithSub.Service.Models;
-using System;
-using System.Threading.Tasks;
 
 namespace BookLibwithSub.Service.Service
 {
@@ -12,25 +12,20 @@ namespace BookLibwithSub.Service.Service
         private readonly ISubscriptionRepository _subscriptionRepo;
         private readonly ISubscriptionPlanRepository _planRepo;
         private readonly IPaymentService _paymentService;
-        private readonly IUserRepository _userRepo;
 
         public SubscriptionService(
             ISubscriptionRepository subscriptionRepo,
             ISubscriptionPlanRepository planRepo,
-            IPaymentService paymentService,
-            IUserRepository userRepo)
+            IPaymentService paymentService)
         {
             _subscriptionRepo = subscriptionRepo;
             _planRepo = planRepo;
             _paymentService = paymentService;
-            _userRepo = userRepo;
         }
+
         public async Task<SubscriptionStatusDto> GetMyStatusAsync(int userId)
         {
-            // latest subscription (could be Active or Inactive, we’ll show what exists)
             var latest = await _subscriptionRepo.GetLatestByUserAsync(userId);
-
-            // default empty when no subs
             if (latest == null)
             {
                 return new SubscriptionStatusDto
@@ -43,36 +38,15 @@ namespace BookLibwithSub.Service.Service
                 };
             }
 
-            // load plan
             var plan = await _planRepo.GetByIdAsync(latest.SubscriptionPlanID);
 
-            // compute usage from Loans/LoanItems via repo (or DbContext if you prefer)
-            // BorrowedToday = number of LoanItems created today under ACTIVE subscription(s)
-            // BorrowedThisMonth = number in this calendar month under ACTIVE subscription(s)
+            // If you want real BorrowedToday/BorrowedThisMonth, inject ILoanRepository and compute.
+            // For now, keep them 0 so the DTO is consistent and safe.
+            var borrowedToday = 0;
+            var borrowedThisMonth = 0;
 
-            // If you don’t have dedicated methods, here’s a simple approach using your _subscriptionRepo context:
-            // We’ll treat "borrow" as LoanItems where ReturnedDate == null (currently out) OR simply count all created today/this month.
-            // Adjust to your business rule if needed.
-
-            var now = DateTime.UtcNow;
-            var todayStart = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
-            var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-
-            // Load Active subscription for accurate enforcement; if current latest is inactive, usage is 0/0.
-            var active = await _subscriptionRepo.GetActiveByUserAsync(userId);
-
-            int borrowedToday = 0, borrowedThisMonth = 0;
-            if (active != null)
-            {
-                // naive counting by LoanItems under active subscription
-                // If you already have LoanRepository, use it; otherwise you can add:
-                // LoanItems where Loan.SubscriptionID == active.SubscriptionID and DueDate (or item creation) within ranges.
-                // Here we’ll use Transaction/Loan repositories if exposed; if not, add two small methods to LoanRepository.
-                // For now, conservative zeros; plug real counts if your LoanRepo has methods.
-            }
-
-            var maxPerDay = plan?.MaxPerDay;
-            var maxPerMonth = plan?.MaxPerMonth;
+            int? maxPerDay = plan?.MaxPerDay;
+            int? maxPerMonth = plan?.MaxPerMonth;
 
             return new SubscriptionStatusDto
             {
@@ -82,7 +56,7 @@ namespace BookLibwithSub.Service.Service
                 Price = plan?.Price,
                 StartDate = latest.StartDate,
                 EndDate = latest.EndDate,
-                Status = latest.Status,          // "Active" or "Inactive" (purchase makes it Inactive until payment completes)
+                Status = latest.Status,
                 MaxPerDay = maxPerDay,
                 MaxPerMonth = maxPerMonth,
                 BorrowedToday = borrowedToday,
@@ -94,62 +68,62 @@ namespace BookLibwithSub.Service.Service
 
         public async Task<Transaction> PurchaseAsync(int userId, int planId)
         {
-            var user = await _userRepo.GetByIdAsync(userId);
-            if (user == null)
-                throw new InvalidOperationException("User not found. Please login again.");
+            var plan = await _planRepo.GetByIdAsync(planId)
+                ?? throw new InvalidOperationException("Subscription plan not found");
 
+            var nowUtc = DateTime.UtcNow;
+
+            // If user already has an active subscription, only allow if this is an upgrade (longer DurationDays)
             var active = await _subscriptionRepo.GetActiveByUserAsync(userId);
             if (active != null)
-                throw new InvalidOperationException("User already has an active subscription");
+            {
+                var activeWithPlan = await _subscriptionRepo.GetByIdWithPlanAsync(active.SubscriptionID) ?? active;
+                var activeDays = activeWithPlan.SubscriptionPlan?.DurationDays ?? 0;
 
-            var plan = await _planRepo.GetByIdAsync(planId);
-            if (plan == null)
-                throw new InvalidOperationException("Subscription plan not found");
+                if (plan.DurationDays <= activeDays)
+                    throw new InvalidOperationException("You already have an active subscription with equal or longer duration.");
 
-            var start = DateTime.UtcNow;
-            var subscription = new Subscription
+                // Deactivate/close the old active subscription immediately
+                active.Status = "Inactive";
+                active.EndDate = nowUtc;
+                await _subscriptionRepo.UpdateAsync(active);
+            }
+
+            // Create and immediately activate the new subscription
+            var newSub = new Subscription
             {
                 UserID = userId,
                 SubscriptionPlanID = plan.SubscriptionPlanID,
-                StartDate = start,
-                EndDate = start.AddDays(plan.DurationDays),
-                Status = "Inactive"
+                StartDate = nowUtc,
+                EndDate = nowUtc.AddDays(plan.DurationDays),
+                Status = "Active"
             };
+            await _subscriptionRepo.AddAsync(newSub);
 
-            await _subscriptionRepo.AddAsync(subscription);
-
-            return await _paymentService.CreatePendingTransactionAsync(
-                userId, subscription.SubscriptionID, plan.Price);
+            // Create a pending transaction tied to this new subscription
+            var tx = await _paymentService.CreatePendingTransactionAsync(userId, newSub.SubscriptionID, plan.Price);
+            return tx;
         }
 
         public async Task<Transaction> RenewAsync(int userId)
         {
-            var user = await _userRepo.GetByIdAsync(userId);
-            if (user == null)
-                throw new InvalidOperationException("User not found. Please login again.");
+            var latest = await _subscriptionRepo.GetLatestByUserAsync(userId)
+                ?? throw new InvalidOperationException("No subscription found to renew");
 
-            var latest = await _subscriptionRepo.GetLatestByUserAsync(userId);
-            if (latest == null)
-                throw new InvalidOperationException("No subscription to renew");
+            var subWithPlan = await _subscriptionRepo.GetByIdWithPlanAsync(latest.SubscriptionID)
+                ?? throw new InvalidOperationException("Subscription not found");
 
-            var plan = await _planRepo.GetByIdAsync(latest.SubscriptionPlanID);
-            if (plan == null)
-                throw new InvalidOperationException("Subscription plan not found");
+            var plan = subWithPlan.SubscriptionPlan
+                ?? throw new InvalidOperationException("Subscription plan not found");
 
-            var start = latest.EndDate > DateTime.UtcNow ? latest.EndDate : DateTime.UtcNow;
-            var subscription = new Subscription
-            {
-                UserID = userId,
-                SubscriptionPlanID = plan.SubscriptionPlanID,
-                StartDate = start,
-                EndDate = start.AddDays(plan.DurationDays),
-                Status = "Inactive"
-            };
+            var nowUtc = DateTime.UtcNow;
+            latest.StartDate = nowUtc;
+            latest.EndDate = nowUtc.AddDays(plan.DurationDays);
+            latest.Status = "Active";
+            await _subscriptionRepo.UpdateAsync(latest);
 
-            await _subscriptionRepo.AddAsync(subscription);
-
-            return await _paymentService.CreatePendingTransactionAsync(
-                userId, subscription.SubscriptionID, plan.Price);
+            var tx = await _paymentService.CreatePendingTransactionAsync(userId, latest.SubscriptionID, plan.Price);
+            return tx;
         }
     }
 }

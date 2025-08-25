@@ -2,7 +2,7 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using BookLibwithSub.Repo.Interfaces;            // <-- added
+using BookLibwithSub.Repo.Interfaces;
 using BookLibwithSub.Service.Constants;
 using BookLibwithSub.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -18,24 +18,23 @@ namespace BookLibwithSub.API.Controllers
         private readonly ISubscriptionPlanService _planService;
         private readonly ISubscriptionService _subscriptionService;
         private readonly IZaloPayService _zaloPayService;
-
-        // NEW: use repo to flip status & dates
         private readonly ISubscriptionRepository _subscriptionRepo;
 
         public SubscriptionsController(
             ISubscriptionPlanService planService,
             ISubscriptionService subscriptionService,
             IZaloPayService zaloPayService,
-            ISubscriptionRepository subscriptionRepo)   // <-- added
+            ISubscriptionRepository subscriptionRepo)
         {
             _planService = planService;
             _subscriptionService = subscriptionService;
             _zaloPayService = zaloPayService;
-            _subscriptionRepo = subscriptionRepo;       // <-- added
+            _subscriptionRepo = subscriptionRepo;
         }
 
         public class PurchaseRequest { public int PlanId { get; set; } }
 
+        // BookLibwithSub.API/Controllers/SubscriptionsController.cs
         [HttpPost("purchase")]
         [Authorize(Roles = Roles.User)]
         public async Task<IActionResult> Purchase([FromBody] PurchaseRequest request)
@@ -44,29 +43,16 @@ namespace BookLibwithSub.API.Controllers
             if (userIdOpt == null)
                 return Unauthorized(new { message = "Invalid token. Please login again." });
 
+            var userId = userIdOpt.Value;
+
             try
             {
-                // 1) create the transaction (your current behavior)
-                var transaction = await _subscriptionService.PurchaseAsync(userIdOpt.Value, request.PlanId);
+                // Service now handles: active check, compare DurationDays, replace/activate
+                var transaction = await _subscriptionService.PurchaseAsync(userId, request.PlanId);
 
-                // 2) create ZaloPay order (your current behavior)
-                var order = await _zaloPayService.CreateOrderAsync(transaction.TransactionID, userIdOpt.Value);
+                // Keep your current order creation + return payload
+                var order = await _zaloPayService.CreateOrderAsync(transaction.TransactionID, userId);
 
-                // 3) IMMEDIATELY ACTIVATE the most recent subscription for this user
-                //    (we fetch it with plan to compute the end date correctly)
-                var latest = await _subscriptionRepo.GetLatestByUserAsync(userIdOpt.Value);
-                if (latest != null)
-                {
-                    var subWithPlan = await _subscriptionRepo.GetByIdWithPlanAsync(latest.SubscriptionID);
-                    if (subWithPlan?.SubscriptionPlan != null)
-                    {
-                        var nowUtc = DateTime.UtcNow;
-                        var endUtc = nowUtc.AddDays(subWithPlan.SubscriptionPlan.DurationDays);
-                        await _subscriptionRepo.ActivateAsync(subWithPlan.SubscriptionID, nowUtc, endUtc);
-                    }
-                }
-
-                // 4) keep returning your original payload
                 return Ok(new { transactionId = transaction.TransactionID, order });
             }
             catch (InvalidOperationException ex)
@@ -74,6 +60,7 @@ namespace BookLibwithSub.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
 
         [HttpGet("status")]
         [Authorize(Roles = Roles.User)]
@@ -98,25 +85,26 @@ namespace BookLibwithSub.API.Controllers
             if (userIdOpt == null)
                 return Unauthorized(new { message = "Invalid token. Please login again." });
 
+            var userId = userIdOpt.Value; // unwrap
+
             try
             {
-                // 1) create renewal transaction (your current behavior)
-                var transaction = await _subscriptionService.RenewAsync(userIdOpt.Value);
+                // Create renewal transaction
+                var transaction = await _subscriptionService.RenewAsync(userId);
 
-                // 2) create ZaloPay order (your current behavior)
-                var order = await _zaloPayService.CreateOrderAsync(transaction.TransactionID, userIdOpt.Value);
+                // ZaloPay order
+                var order = await _zaloPayService.CreateOrderAsync(transaction.TransactionID, userId);
 
-                // 3) IMMEDIATELY ACTIVATE (or re-activate) with plan duration
-                var latest = await _subscriptionRepo.GetLatestByUserAsync(userIdOpt.Value);
-                if (latest != null)
+                // Activate (or re-activate) the subscription tied to this transaction
+                var subId = transaction.SubscriptionID
+                    ?? throw new InvalidOperationException("Transaction is not linked to a subscription.");
+
+                var subWithPlan = await _subscriptionRepo.GetByIdWithPlanAsync(subId);
+                if (subWithPlan?.SubscriptionPlan != null)
                 {
-                    var subWithPlan = await _subscriptionRepo.GetByIdWithPlanAsync(latest.SubscriptionID);
-                    if (subWithPlan?.SubscriptionPlan != null)
-                    {
-                        var nowUtc = DateTime.UtcNow;
-                        var endUtc = nowUtc.AddDays(subWithPlan.SubscriptionPlan.DurationDays);
-                        await _subscriptionRepo.ActivateAsync(subWithPlan.SubscriptionID, nowUtc, endUtc);
-                    }
+                    var nowUtc = DateTime.UtcNow;
+                    var endUtc = nowUtc.AddDays(subWithPlan.SubscriptionPlan.DurationDays);
+                    await _subscriptionRepo.ActivateAsync(subWithPlan.SubscriptionID, nowUtc, endUtc);
                 }
 
                 return Ok(new { transactionId = transaction.TransactionID, order });

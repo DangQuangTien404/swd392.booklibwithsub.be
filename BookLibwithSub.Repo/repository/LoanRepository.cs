@@ -23,10 +23,14 @@ namespace BookLibwithSub.Repo.repository
             if (end.Kind != DateTimeKind.Utc) end = DateTime.SpecifyKind(end, DateTimeKind.Utc);
 
             return await _context.LoanItems
-                .Where(li => li.Loan.SubscriptionID == subscriptionId &&
-                             li.Loan.LoanDate >= start && li.Loan.LoanDate < end)
+                .Where(li =>
+                    li.Loan.SubscriptionID == subscriptionId &&
+                    li.Loan.LoanDate >= start &&
+                    li.Loan.LoanDate < end &&
+                    li.Status != "Returned")            // <-- exclude items already returned
                 .CountAsync();
         }
+
 
         public async Task AddAsync(Loan loan)
         {
