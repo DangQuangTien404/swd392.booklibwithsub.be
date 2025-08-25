@@ -66,6 +66,17 @@ namespace BookLibwithSub.API.Controllers
             return Ok(new { id = tx.TransactionID, status = tx.Status });
         }
 
+        [HttpGet("zalo/tx/{id:int}/query")]
+        [Authorize]
+        public async Task<IActionResult> QueryZaloPayStatus([FromRoute] int id)
+        {
+            var tx = await _transactionService.GetTransactionByIdAsync(id);
+            if (tx == null) return NotFound();
+
+            var result = await _zaloPayService.QueryOrderAsync(id);
+            return Ok(result);
+        }
+
         private int? GetUserId()
         {
             var sub = User?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value

@@ -104,6 +104,33 @@ namespace BookLibwithSub.Service.Service
             };
         }
 
+        public async Task<ZaloPayQueryOrderResult> QueryOrderAsync(int transactionId)
+        {
+            var tx = await _transactionRepository.GetByIdAsync(transactionId);
+            if (tx == null) return new ZaloPayQueryOrderResult { ReturnCode = -1, ReturnMessage = "Transaction not found" };
+
+            var appTransId = $"{tx.TransactionDate:yyMMdd}_{transactionId}";
+            var data = $"{_options.AppId}|{appTransId}|{_options.Key1}";
+            var mac = HmacSHA256(_options.Key1, data);
+
+            var payload = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("app_id", _options.AppId),
+                new KeyValuePair<string, string>("app_trans_id", appTransId),
+                new KeyValuePair<string, string>("mac", mac)
+            });
+
+            using var response = await _httpClient.PostAsync(_options.QueryOrderUrl, payload);
+            var json = await response.Content.ReadAsStringAsync();
+
+            var result = JsonSerializer.Deserialize<ZaloPayQueryOrderResult>(json, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            return result ?? new ZaloPayQueryOrderResult { ReturnCode = -1, ReturnMessage = "Invalid response" };
+        }
+
         private static string HmacSHA256(string key, string data)
         {
             using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(key));

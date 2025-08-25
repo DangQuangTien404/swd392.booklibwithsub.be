@@ -7,5 +7,6 @@ namespace BookLibwithSub.Service.Interfaces
     {
         Task<ZaloPayCreateOrderResult> CreateOrderAsync(int transactionId, int userId);
         Task<ZaloPayCallbackResult> HandleCallbackAsync(ZaloPayCallbackRequest request);
+        Task<ZaloPayQueryOrderResult> QueryOrderAsync(int transactionId);
     }
 }
