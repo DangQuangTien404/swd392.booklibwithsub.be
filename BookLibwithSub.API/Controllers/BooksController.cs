@@ -72,7 +72,7 @@ namespace BookLibwithSub.API.Controllers
             try
             {
                 var result = await _svc.UpdateAsync(id, updated);
-                if (result == null) return NotFound();
+                if (result == null) return NotFound(new { message = $"Book with ID {id} not found." });
                 return Ok(Shape(result));
             }
             catch (System.InvalidOperationException ex) when (ex.Message.Contains("ISBN"))
@@ -90,7 +90,7 @@ namespace BookLibwithSub.API.Controllers
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
             var b = await _svc.GetByIdAsync(id);
-            return b == null ? NotFound() : Ok(Shape(b));
+            return b == null ? NotFound(new { message = $"Book with ID {id} not found." }) : Ok(Shape(b));
         }
 
         [HttpGet("sorted")]
@@ -108,8 +108,18 @@ namespace BookLibwithSub.API.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            var ok = await _svc.DeleteAsync(id);
-            return ok ? NoContent() : NotFound();
+            try
+            {
+                var deleted = await _svc.DeleteAsync(id);
+                if (!deleted)
+                    return NotFound(new { message = $"Book with ID {id} not found." });
+
+                return Ok(new { message = $"Book with ID {id} deleted successfully." });
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         private static object Shape(Book b) => new
