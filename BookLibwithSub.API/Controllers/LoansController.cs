@@ -57,24 +57,38 @@ namespace BookLibwithSub.API.Controllers
             );
 
         [HttpPost]
+        [Authorize(Roles = Roles.User)]
         public async Task<IActionResult> Borrow([FromBody] BorrowRequest request)
         {
-            if (!TryGetUserId(out _)) return Unauthorized();
             try
             {
                 var loan = await _loanService.BorrowAsync(request.SubscriptionId, request.BookIds);
-                return Ok(MapLoan(loan));
+
+                return Ok(new
+                {
+                    message = "Loan created successfully",
+                    loanId = loan.LoanID,
+                    subscriptionId = loan.SubscriptionID,
+                    status = loan.Status,
+                    loanDate = loan.LoanDate,
+                    items = loan.LoanItems.Select(li => new
+                    {
+                        li.LoanItemID,
+                        li.BookID,
+                        li.DueDate,
+                        li.Status
+                    })
+                });
             }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { message = ex.Message });
             }
-            catch
+            catch (Exception)
             {
                 return StatusCode(500, new { message = "An unexpected error occurred while borrowing." });
             }
         }
-
         [HttpPost("{loanId:int}/items")]
         public async Task<IActionResult> AddItems([FromRoute] int loanId, [FromBody] AddItemsRequest request)
         {

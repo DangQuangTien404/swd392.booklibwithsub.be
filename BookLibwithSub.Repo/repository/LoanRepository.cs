@@ -18,20 +18,23 @@ namespace BookLibwithSub.Repo.repository
 
         public async Task<int> CountLoanItemsAsync(int subscriptionId, DateTime start, DateTime end)
         {
+            // Ensure UTC before hitting timestamptz columns
             if (start.Kind != DateTimeKind.Utc) start = DateTime.SpecifyKind(start, DateTimeKind.Utc);
             if (end.Kind != DateTimeKind.Utc) end = DateTime.SpecifyKind(end, DateTimeKind.Utc);
 
             return await _context.LoanItems
                 .Where(li =>
                     li.Loan.SubscriptionID == subscriptionId &&
-                    li.Status != "Returned" &&
-                    li.DueDate.AddDays(-14) >= start &&
-                    li.DueDate.AddDays(-14) < end)
+                    li.Loan.LoanDate >= start &&
+                    li.Loan.LoanDate < end &&
+                    li.Status != "Returned")            // <-- exclude items already returned
                 .CountAsync();
         }
 
+
         public async Task AddAsync(Loan loan)
         {
+            // Defensive: normalize any incoming dates to UTC
             if (loan.LoanDate.Kind != DateTimeKind.Utc)
                 loan.LoanDate = DateTime.SpecifyKind(loan.LoanDate, DateTimeKind.Utc);
             if (loan.ReturnDate.HasValue && loan.ReturnDate.Value.Kind != DateTimeKind.Utc)
@@ -72,6 +75,7 @@ namespace BookLibwithSub.Repo.repository
 
         public async Task AddItemsAsync(Loan loan, IEnumerable<LoanItem> items)
         {
+            // Defensive: normalize any incoming dates to UTC
             foreach (var item in items)
             {
                 if (item.DueDate.Kind != DateTimeKind.Utc)
@@ -120,18 +124,8 @@ namespace BookLibwithSub.Repo.repository
                 throw new InvalidOperationException($"Book {item.BookID} not found");
 
             await _context.SaveChangesAsync();
-
-            var loanId = item.LoanID;
-            var remaining = await _context.LoanItems.CountAsync(li => li.LoanID == loanId && li.Status != "Returned");
-            if (remaining == 0)
-            {
-                var loan = await _context.Loans.FirstAsync(l => l.LoanID == loanId);
-                loan.Status = "Returned";
-                loan.ReturnDate = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
-            }
-
             await tx.CommitAsync();
+
             return item;
         }
 
@@ -139,7 +133,6 @@ namespace BookLibwithSub.Repo.repository
         {
             return await _context.Loans
                 .Include(l => l.LoanItems)
-                .Include(l => l.Subscription)
                 .Where(l => l.Subscription.UserID == userId)
                 .OrderByDescending(l => l.LoanDate)
                 .ToListAsync();
@@ -150,7 +143,6 @@ namespace BookLibwithSub.Repo.repository
             return await _context.Loans
                 .Where(l => l.Subscription.UserID == userId &&
                             l.LoanItems.Any(li => li.Status != "Returned"))
-                .Include(l => l.Subscription)
                 .Include(l => l.LoanItems.Where(li => li.Status != "Returned"))
                 .ToListAsync();
         }
@@ -167,7 +159,7 @@ namespace BookLibwithSub.Repo.repository
                 }
                 else if (daysToExtend.HasValue)
                 {
-                    item.DueDate = item.DueDate.AddDays(daysToExtend.Value);
+                    item.DueDate = item.DueDate.AddDays(daysToExtend.Value); 
                 }
             }
 
