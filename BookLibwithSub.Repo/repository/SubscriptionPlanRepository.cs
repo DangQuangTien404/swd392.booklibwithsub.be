@@ -53,13 +53,22 @@ namespace BookLibwithSub.Repo.repository
 
         public async Task DeleteAsync(int id)
         {
-            var plan = await _context.SubscriptionPlans
-                .FirstOrDefaultAsync(p => p.SubscriptionPlanID == id);
+            var inUse = await _context.Subscriptions
+                .AsNoTracking()
+                .AnyAsync(s => s.SubscriptionPlanID == id);
 
-            if (plan != null)
+            if (inUse)
+                throw new InvalidOperationException("Cannot delete this plan because one or more subscriptions still reference it.");
+
+            var plan = new SubscriptionPlan { SubscriptionPlanID = id };
+            _context.Entry(plan).State = EntityState.Deleted;
+
+            try
             {
-                _context.SubscriptionPlans.Remove(plan);
                 await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
             }
         }
 

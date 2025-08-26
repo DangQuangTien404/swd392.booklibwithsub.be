@@ -4,6 +4,7 @@ using BookLibwithSub.Service.Interfaces;
 using BookLibwithSub.Service.Models; 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookLibwithSub.API.Controllers
 {
@@ -102,8 +103,21 @@ namespace BookLibwithSub.API.Controllers
             var existing = await _service.GetByIdAsync(id);
             if (existing == null) return NotFound();
 
-            await _service.DeleteAsync(id);
-            return NoContent();
+            try
+            {
+                await _service.DeleteAsync(id);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
+            catch (DbUpdateException ex)
+            {
+                return Problem(statusCode: StatusCodes.Status409Conflict,
+                               title: "Delete failed due to related data",
+                               detail: ex.InnerException?.Message ?? ex.Message);
+            }
         }
     }
 }
