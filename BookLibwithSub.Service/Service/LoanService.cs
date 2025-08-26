@@ -35,9 +35,6 @@ namespace BookLibwithSub.Service.Service
             {
                 throw new InvalidOperationException("Subscription is not active or out of date range");
             }
-            var hasActiveLoans = (await _loanRepo.GetActiveLoansByUserAsync(subscription.UserID)).Any();
-            if (hasActiveLoans)
-                throw new InvalidOperationException("You must return your borrowed books before creating a new loan.");
 
             var plan = subscription.SubscriptionPlan
                 ?? throw new InvalidOperationException("Subscription plan missing");
@@ -48,34 +45,73 @@ namespace BookLibwithSub.Service.Service
             var monthStart = new DateTime(now.Year, now.Month, 1);
             var monthEnd = monthStart.AddMonths(1);
 
-            int alreadyToday = await _loanRepo.CountLoanItemsAsync(subscriptionId, dayStart, dayEnd);
-            int alreadyMonth = await _loanRepo.CountLoanItemsAsync(subscriptionId, monthStart, monthEnd);
-            int requested = bookIds.Count();
+            var activeForUser = await _loanRepo.GetActiveLoansByUserAsync(subscription.UserID);
+            var activeForSubscription = activeForUser.FirstOrDefault(l => l.SubscriptionID == subscriptionId);
 
-            if (alreadyToday + requested > plan.MaxPerDay)
-                throw new InvalidOperationException($"Daily borrowing limit exceeded. requested={requested}, alreadyToday={alreadyToday}, maxPerDay={plan.MaxPerDay}");
-
-            if (alreadyMonth + requested > plan.MaxPerMonth)
-                throw new InvalidOperationException($"Monthly borrowing limit exceeded. requested={requested}, alreadyMonth={alreadyMonth}, maxPerMonth={plan.MaxPerMonth}");
-
-            var loan = new Loan
+            if (activeForSubscription != null)
             {
-                SubscriptionID = subscriptionId,
-                LoanDate = now,
-                Status = "Borrowed",
-                LoanItems = bookIds.Select(id => new LoanItem
+                var loan = await _loanRepo.GetByIdAsync(activeForSubscription.LoanID)
+                           ?? throw new InvalidOperationException("Active loan not found");
+                var existingBorrowed = loan.LoanItems.Where(i => i.Status == "Borrowed").Select(i => i.BookID).ToHashSet();
+                var toBorrow = bookIds.Distinct().Where(id => !existingBorrowed.Contains(id)).ToList();
+
+                int alreadyToday = await _loanRepo.CountLoanItemsAsync(subscriptionId, dayStart, dayEnd);
+                int alreadyMonth = await _loanRepo.CountLoanItemsAsync(subscriptionId, monthStart, monthEnd);
+                int requested = toBorrow.Count;
+
+                if (requested == 0) return loan;
+
+                if (alreadyToday + requested > plan.MaxPerDay)
+                    throw new InvalidOperationException($"Daily borrowing limit exceeded. requested={requested}, alreadyToday={alreadyToday}, maxPerDay={plan.MaxPerDay}");
+
+                if (alreadyMonth + requested > plan.MaxPerMonth)
+                    throw new InvalidOperationException($"Monthly borrowing limit exceeded. requested={requested}, alreadyMonth={alreadyMonth}, maxPerMonth={plan.MaxPerMonth}");
+
+                var items = toBorrow.Select(id => new LoanItem
                 {
                     BookID = id,
                     DueDate = now.AddDays(14),
                     Status = "Borrowed"
-                }).ToList()
-            };
+                }).ToList();
 
-            await _loanRepo.AddAsync(loan);
+                await _loanRepo.AddItemsAsync(loan, items);
 
-            var loaded = await _loanRepo.GetByIdAsync(loan.LoanID)
-                         ?? throw new InvalidOperationException("Created loan not found");
-            return loaded;
+                var loaded = await _loanRepo.GetByIdAsync(loan.LoanID)
+                             ?? throw new InvalidOperationException("Updated loan not found");
+                return loaded;
+            }
+            else
+            {
+                int alreadyToday = await _loanRepo.CountLoanItemsAsync(subscriptionId, dayStart, dayEnd);
+                int alreadyMonth = await _loanRepo.CountLoanItemsAsync(subscriptionId, monthStart, monthEnd);
+                var distinctIds = bookIds.Distinct().ToList();
+                int requested = distinctIds.Count;
+
+                if (alreadyToday + requested > plan.MaxPerDay)
+                    throw new InvalidOperationException($"Daily borrowing limit exceeded. requested={requested}, alreadyToday={alreadyToday}, maxPerDay={plan.MaxPerDay}");
+
+                if (alreadyMonth + requested > plan.MaxPerMonth)
+                    throw new InvalidOperationException($"Monthly borrowing limit exceeded. requested={requested}, alreadyMonth={alreadyMonth}, maxPerMonth={plan.MaxPerMonth}");
+
+                var loan = new Loan
+                {
+                    SubscriptionID = subscriptionId,
+                    LoanDate = now,
+                    Status = "Borrowed",
+                    LoanItems = distinctIds.Select(id => new LoanItem
+                    {
+                        BookID = id,
+                        DueDate = now.AddDays(14),
+                        Status = "Borrowed"
+                    }).ToList()
+                };
+
+                await _loanRepo.AddAsync(loan);
+
+                var loaded = await _loanRepo.GetByIdAsync(loan.LoanID)
+                             ?? throw new InvalidOperationException("Created loan not found");
+                return loaded;
+            }
         }
 
         public async Task<Loan> AddItemsAsync(int loanId, IEnumerable<int> bookIds)
@@ -102,9 +138,14 @@ namespace BookLibwithSub.Service.Service
             var monthStart = new DateTime(now.Year, now.Month, 1);
             var monthEnd = monthStart.AddMonths(1);
 
+            var existingBorrowed = loan.LoanItems.Where(i => i.Status == "Borrowed").Select(i => i.BookID).ToHashSet();
+            var toBorrow = bookIds.Distinct().Where(id => !existingBorrowed.Contains(id)).ToList();
+
             int alreadyToday = await _loanRepo.CountLoanItemsAsync(subscription.SubscriptionID, dayStart, dayEnd);
             int alreadyMonth = await _loanRepo.CountLoanItemsAsync(subscription.SubscriptionID, monthStart, monthEnd);
-            int requested = bookIds.Count();
+            int requested = toBorrow.Count;
+
+            if (requested == 0) return loan;
 
             if (alreadyToday + requested > plan.MaxPerDay)
                 throw new InvalidOperationException($"Daily borrowing limit exceeded. requested={requested}, alreadyToday={alreadyToday}, maxPerDay={plan.MaxPerDay}");
@@ -112,7 +153,7 @@ namespace BookLibwithSub.Service.Service
             if (alreadyMonth + requested > plan.MaxPerMonth)
                 throw new InvalidOperationException($"Monthly borrowing limit exceeded. requested={requested}, alreadyMonth={alreadyMonth}, maxPerMonth={plan.MaxPerMonth}");
 
-            var items = bookIds.Select(id => new LoanItem
+            var items = toBorrow.Select(id => new LoanItem
             {
                 BookID = id,
                 DueDate = now.AddDays(14),
