@@ -78,30 +78,30 @@ namespace BookLibwithSub.API.Controllers
         }
 
 
-        [HttpPut("users/{id:int}")]
-        [Authorize]
-        public async Task<IActionResult> UpdateAccount(int id, [FromBody] UpdateUserRequest request)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
+        //[HttpPut("users/{id:int}")]
+        //[Authorize]
+        //public async Task<IActionResult> UpdateAccount(int id, [FromBody] UpdateUserRequest request)
+        //{
+        //    if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
-            if (userId != id && !User.IsInRole(Roles.Admin)) return Forbid();
+        //    var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+        //    if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
+        //    if (userId != id && !User.IsInRole(Roles.Admin)) return Forbid();
 
-            try
-            {
-                await _authService.UpdateAccountAsync(id, request);
-                return NoContent();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+        //    try
+        //    {
+        //        await _authService.UpdateAccountAsync(id, request);
+        //        return NoContent();
+        //    }
+        //    catch (InvalidOperationException ex)
+        //    {
+        //        return NotFound(new { message = ex.Message });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { message = ex.Message });
+        //    }
+        //}
 
         [HttpDelete("users/{id:int}")]
         [Authorize]
