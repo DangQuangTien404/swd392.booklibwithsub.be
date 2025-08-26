@@ -39,9 +39,7 @@ namespace BookLibwithSub.API.Controllers
 
         private bool TryGetUserId(out int userId)
         {
-            var id =
-                User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-                User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            var id = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
             return int.TryParse(id, out userId);
         }
 
@@ -52,18 +50,22 @@ namespace BookLibwithSub.API.Controllers
                 loan.LoanDate,
                 loan.ReturnDate,
                 loan.Status,
-                loan.LoanItems.Select(li =>
-                    new LoanItemResponse(li.LoanItemID, li.BookID, li.DueDate, li.ReturnedDate, li.Status))
+                loan.LoanItems.Select(li => new LoanItemResponse(li.LoanItemID, li.BookID, li.DueDate, li.ReturnedDate, li.Status))
             );
 
         [HttpPost]
         public async Task<IActionResult> Borrow([FromBody] BorrowRequest request)
         {
             if (!TryGetUserId(out _)) return Unauthorized();
+            if (request == null || request.BookIds == null || request.BookIds.Count == 0) return BadRequest(new { message = "No book ids" });
             try
             {
                 var loan = await _loanService.BorrowAsync(request.SubscriptionId, request.BookIds);
                 return Ok(MapLoan(loan));
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("limit", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("return all borrowed", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(409, new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
@@ -79,17 +81,36 @@ namespace BookLibwithSub.API.Controllers
         public async Task<IActionResult> AddItems([FromRoute] int loanId, [FromBody] AddItemsRequest request)
         {
             if (!TryGetUserId(out _)) return Unauthorized();
-            var loan = await _loanService.AddItemsAsync(loanId, request.BookIds);
-            return Ok(MapLoan(loan));
+            if (request == null || request.BookIds == null || request.BookIds.Count == 0) return BadRequest(new { message = "No book ids" });
+            try
+            {
+                var loan = await _loanService.AddItemsAsync(loanId, request.BookIds);
+                return Ok(MapLoan(loan));
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("limit", StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(409, new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost("items/{loanItemId:int}/return")]
         public async Task<IActionResult> ReturnItem([FromRoute] int loanItemId)
         {
             if (!TryGetUserId(out _)) return Unauthorized();
-            var item = await _loanService.ReturnAsync(loanItemId);
-            var response = new LoanItemResponse(item.LoanItemID, item.BookID, item.DueDate, item.ReturnedDate, item.Status);
-            return Ok(response);
+            try
+            {
+                var item = await _loanService.ReturnAsync(loanItemId);
+                var response = new LoanItemResponse(item.LoanItemID, item.BookID, item.DueDate, item.ReturnedDate, item.Status);
+                return Ok(response);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpGet("history")]
@@ -113,7 +134,7 @@ namespace BookLibwithSub.API.Controllers
         {
             if (!TryGetUserId(out var userId)) return Unauthorized();
             var loan = await _loanService.GetLoanAsync(loanId, userId);
-            if (loan is null) return NotFound();
+            if (loan is null) return NotFound(new { message = "Loan not found" });
             return Ok(MapLoan(loan));
         }
 
@@ -121,8 +142,27 @@ namespace BookLibwithSub.API.Controllers
         public async Task<IActionResult> ExtendLoan([FromRoute] int loanId, [FromBody] ExtendLoanRequest request)
         {
             if (!TryGetUserId(out var userId)) return Unauthorized();
-            var loan = await _loanService.ExtendLoanAsync(loanId, userId, request.NewDueDate, request.DaysToExtend);
-            return Ok(MapLoan(loan));
+            try
+            {
+                var loan = await _loanService.ExtendLoanAsync(loanId, userId, request.NewDueDate, request.DaysToExtend);
+                return Ok(MapLoan(loan));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("history")]
+        public async Task<IActionResult> DeleteHistory()
+        {
+            if (!TryGetUserId(out var userId)) return Unauthorized();
+            var deleted = await _loanService.DeleteHistoryAsync(userId);
+            return Ok(new { message = $"Deleted {deleted} loan(s) from history." });
         }
     }
 }

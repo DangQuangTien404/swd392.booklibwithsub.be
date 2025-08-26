@@ -30,6 +30,13 @@ namespace BookLibwithSub.Repo.repository
                 .CountAsync();
         }
 
+        public async Task<int> CountUnreturnedItemsAsync(int userId)
+        {
+            return await _context.LoanItems
+                .Where(li => li.Loan.Subscription.UserID == userId && li.Status != "Returned")
+                .CountAsync();
+        }
+
         public async Task AddAsync(Loan loan)
         {
             if (loan.LoanDate.Kind != DateTimeKind.Utc)
@@ -148,8 +155,7 @@ namespace BookLibwithSub.Repo.repository
         public async Task<List<Loan>> GetActiveLoansByUserAsync(int userId)
         {
             return await _context.Loans
-                .Where(l => l.Subscription.UserID == userId &&
-                            l.LoanItems.Any(li => li.Status != "Returned"))
+                .Where(l => l.Subscription.UserID == userId && l.LoanItems.Any(li => li.Status != "Returned"))
                 .Include(l => l.Subscription)
                 .Include(l => l.LoanItems.Where(li => li.Status != "Returned"))
                 .ToListAsync();
@@ -173,5 +179,22 @@ namespace BookLibwithSub.Repo.repository
 
             await _context.SaveChangesAsync();
         }
+
+        public async Task<int> DeleteHistoryAsync(int userId)
+        {
+            var loans = await _context.Loans
+                .Include(l => l.LoanItems)
+                .Include(l => l.Subscription)
+                .Where(l => l.Subscription.UserID == userId && l.ReturnDate != null)
+                .ToListAsync();
+
+            var count = loans.Count;
+            if (count == 0) return 0;
+
+            _context.Loans.RemoveRange(loans);
+            await _context.SaveChangesAsync();
+            return count;
+        }
+
     }
 }

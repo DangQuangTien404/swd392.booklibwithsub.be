@@ -14,5 +14,6 @@ namespace BookLibwithSub.Service.Interfaces
         Task<Loan> ExtendLoanAsync(int loanId, int userId, DateTime? newDueDate, int? daysToExtend);
         Task<IEnumerable<Loan>> GetLoanHistoryAsync(int userId);
         Task<IEnumerable<Loan>> GetActiveLoansAsync(int userId);
+        Task<int> DeleteHistoryAsync(int userId);
     }
 }
