@@ -167,9 +167,8 @@ namespace BookLibwithSub.Repo
                 entity.HasOne(li => li.Book)
                     .WithMany(b => b.LoanItems)
                     .HasForeignKey(li => li.BookID)
-                    .OnDelete(DeleteBehavior.Restrict);
+                    .OnDelete(DeleteBehavior.Cascade);
 
-                // ✅ store as timestamptz
                 entity.Property(li => li.DueDate)
                     .HasColumnType("timestamp with time zone")
                     .IsRequired();

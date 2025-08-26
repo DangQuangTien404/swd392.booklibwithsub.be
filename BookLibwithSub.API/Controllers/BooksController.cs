@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using BookLibwithSub.Repo.Entities;
 using BookLibwithSub.Service.DTOs;
 using BookLibwithSub.Service.Interfaces;
@@ -118,7 +119,7 @@ namespace BookLibwithSub.API.Controllers
             }
             catch (System.InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return StatusCode(StatusCodes.Status409Conflict, new { message = ex.Message });
             }
         }
 
