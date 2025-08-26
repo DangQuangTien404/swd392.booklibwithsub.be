@@ -16,9 +16,7 @@ namespace BookLibwithSub.API.Controllers
 
         public BooksController(IBookService svc) => _svc = svc;
 
-        // 1) Add new book (image via link)
         [HttpPost]
-
         public async Task<IActionResult> Add([FromBody] BookCreateDto dto)
         {
             if (dto == null) return BadRequest();
@@ -54,9 +52,7 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        // 2) Change book
         [HttpPut("{id:int}")]
-
         public async Task<IActionResult> Change([FromRoute] int id, [FromBody] BookUpdateDto dto)
         {
             if (dto == null) return BadRequest();
@@ -89,7 +85,6 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        // 3) Get book by ID
         [HttpGet("{id:int}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetById([FromRoute] int id)
@@ -98,8 +93,6 @@ namespace BookLibwithSub.API.Controllers
             return b == null ? NotFound() : Ok(Shape(b));
         }
 
-        // 4) Get books sorted by PublishedYear (replaces old "Get all")
-        //    /api/books/sorted?order=asc   (default: desc)
         [HttpGet("sorted")]
         [AllowAnonymous]
         public async Task<IActionResult> GetSorted([FromQuery] string? order = "desc")
@@ -112,16 +105,13 @@ namespace BookLibwithSub.API.Controllers
             return Ok(sorted.Select(Shape));
         }
 
-        // 5) Delete book
         [HttpDelete("{id:int}")]
-
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
             var ok = await _svc.DeleteAsync(id);
             return ok ? NoContent() : NotFound();
         }
 
-        // response shaping
         private static object Shape(Book b) => new
         {
             id = b.BookID,

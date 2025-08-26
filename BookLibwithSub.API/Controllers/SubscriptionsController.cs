@@ -34,7 +34,6 @@ namespace BookLibwithSub.API.Controllers
 
         public class PurchaseRequest { public int PlanId { get; set; } }
 
-        // BookLibwithSub.API/Controllers/SubscriptionsController.cs
         [HttpPost("purchase")]
         [Authorize(Roles = Roles.User)]
         public async Task<IActionResult> Purchase([FromBody] PurchaseRequest request)
@@ -47,10 +46,8 @@ namespace BookLibwithSub.API.Controllers
 
             try
             {
-                // Service now handles: active check, compare DurationDays, replace/activate
                 var transaction = await _subscriptionService.PurchaseAsync(userId, request.PlanId);
 
-                // Keep your current order creation + return payload
                 var order = await _zaloPayService.CreateOrderAsync(transaction.TransactionID, userId);
 
                 return Ok(new { transactionId = transaction.TransactionID, order });
@@ -60,7 +57,6 @@ namespace BookLibwithSub.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
 
         [HttpGet("status")]
         [Authorize(Roles = Roles.User)]
@@ -85,17 +81,14 @@ namespace BookLibwithSub.API.Controllers
             if (userIdOpt == null)
                 return Unauthorized(new { message = "Invalid token. Please login again." });
 
-            var userId = userIdOpt.Value; // unwrap
+            var userId = userIdOpt.Value;
 
             try
             {
-                // Create renewal transaction
                 var transaction = await _subscriptionService.RenewAsync(userId);
 
-                // ZaloPay order
                 var order = await _zaloPayService.CreateOrderAsync(transaction.TransactionID, userId);
 
-                // Activate (or re-activate) the subscription tied to this transaction
                 var subId = transaction.SubscriptionID
                     ?? throw new InvalidOperationException("Transaction is not linked to a subscription.");
 

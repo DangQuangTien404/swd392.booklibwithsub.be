@@ -20,7 +20,6 @@ namespace BookLibwithSub.API.Controllers
         private readonly ILoanService _loanService;
         public LoansController(ILoanService loanService) => _loanService = loanService;
 
-        // DTOs
         public sealed class BorrowRequest
         {
             public int SubscriptionId { get; set; }
@@ -57,7 +56,6 @@ namespace BookLibwithSub.API.Controllers
                     new LoanItemResponse(li.LoanItemID, li.BookID, li.DueDate, li.ReturnedDate, li.Status))
             );
 
-        // POST /api/loans  -> return created loan
         [HttpPost]
         [Authorize(Roles = Roles.User)]
         public async Task<IActionResult> Borrow([FromBody] BorrowRequest request)
@@ -66,7 +64,6 @@ namespace BookLibwithSub.API.Controllers
             {
                 var loan = await _loanService.BorrowAsync(request.SubscriptionId, request.BookIds);
 
-                // Return a clean payload instead of empty 200
                 return Ok(new
                 {
                     message = "Loan created successfully",
@@ -85,18 +82,13 @@ namespace BookLibwithSub.API.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                // Handle business rule violations (like active loan exists, quota exceeded, etc.)
                 return BadRequest(new { message = ex.Message });
             }
             catch (Exception)
             {
-                // Handle unexpected errors gracefully
                 return StatusCode(500, new { message = "An unexpected error occurred while borrowing." });
             }
         }
-
-
-        // POST /api/loans/{loanId}/items -> return updated loan
         [HttpPost("{loanId:int}/items")]
         public async Task<IActionResult> AddItems([FromRoute] int loanId, [FromBody] AddItemsRequest request)
         {
@@ -105,7 +97,6 @@ namespace BookLibwithSub.API.Controllers
             return Ok(MapLoan(loan));
         }
 
-        // POST /api/loans/items/{loanItemId}/return -> return updated loan item
         [HttpPost("items/{loanItemId:int}/return")]
         public async Task<IActionResult> ReturnItem([FromRoute] int loanItemId)
         {
@@ -115,7 +106,6 @@ namespace BookLibwithSub.API.Controllers
             return Ok(response);
         }
 
-        // GET /api/loans/history
         [HttpGet("history")]
         public async Task<IActionResult> GetHistory()
         {
@@ -124,7 +114,6 @@ namespace BookLibwithSub.API.Controllers
             return Ok(loans.Select(MapLoan));
         }
 
-        // GET /api/loans/active
         [HttpGet("active")]
         public async Task<IActionResult> GetActive()
         {
@@ -133,7 +122,6 @@ namespace BookLibwithSub.API.Controllers
             return Ok(loans.Select(MapLoan));
         }
 
-        // GET /api/loans/{loanId}
         [HttpGet("{loanId:int}")]
         public async Task<IActionResult> GetLoan([FromRoute] int loanId)
         {
@@ -143,7 +131,6 @@ namespace BookLibwithSub.API.Controllers
             return Ok(MapLoan(loan));
         }
 
-        // PUT /api/loans/{loanId}/extend -> return updated loan
         [HttpPut("{loanId:int}/extend")]
         public async Task<IActionResult> ExtendLoan([FromRoute] int loanId, [FromBody] ExtendLoanRequest request)
         {
