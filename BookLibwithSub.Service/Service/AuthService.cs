@@ -56,26 +56,27 @@ namespace BookLibwithSub.Service.Service
 
             if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return null;
+
             if (!string.IsNullOrEmpty(user.CurrentToken))
-            {
                 await _userRepository.UpdateTokenAsync(user.UserID, null);
-            }
 
             var key = _jwtOptions.Key ?? throw new InvalidOperationException("JWT key not configured");
             var issuer = _jwtOptions.Issuer;
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserID.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role)
-            };
+        new Claim(JwtRegisteredClaimNames.Sub, user.UserID.ToString()),
+        new Claim(ClaimTypes.NameIdentifier,   user.UserID.ToString()),
+        new Claim(ClaimTypes.Name,             user.Username),
+        new Claim(ClaimTypes.Role,             user.Role) 
+    };
 
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
             var token = new JwtSecurityToken(
                 issuer: issuer,
-                audience: issuer,
+                audience: null,
                 claims: claims,
+                notBefore: DateTime.UtcNow,
                 expires: DateTime.UtcNow.AddHours(1),
                 signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
             );

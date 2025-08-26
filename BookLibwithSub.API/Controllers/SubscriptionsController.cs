@@ -1,6 +1,8 @@
+using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using BookLibwithSub.Repo.Interfaces;
 using BookLibwithSub.Service.Constants;
 using BookLibwithSub.Service.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -16,15 +18,18 @@ namespace BookLibwithSub.API.Controllers
         private readonly ISubscriptionPlanService _planService;
         private readonly ISubscriptionService _subscriptionService;
         private readonly IZaloPayService _zaloPayService;
+        private readonly ISubscriptionRepository _subscriptionRepo;
 
         public SubscriptionsController(
             ISubscriptionPlanService planService,
             ISubscriptionService subscriptionService,
-            IZaloPayService zaloPayService)
+            IZaloPayService zaloPayService,
+            ISubscriptionRepository subscriptionRepo)
         {
             _planService = planService;
             _subscriptionService = subscriptionService;
             _zaloPayService = zaloPayService;
+            _subscriptionRepo = subscriptionRepo;
         }
 
         public class PurchaseRequest { public int PlanId { get; set; } }
@@ -37,10 +42,14 @@ namespace BookLibwithSub.API.Controllers
             if (userIdOpt == null)
                 return Unauthorized(new { message = "Invalid token. Please login again." });
 
+            var userId = userIdOpt.Value;
+
             try
             {
-                var transaction = await _subscriptionService.PurchaseAsync(userIdOpt.Value, request.PlanId);
-                var order = await _zaloPayService.CreateOrderAsync(transaction.TransactionID, userIdOpt.Value);
+                var transaction = await _subscriptionService.PurchaseAsync(userId, request.PlanId);
+
+                var order = await _zaloPayService.CreateOrderAsync(transaction.TransactionID, userId);
+
                 return Ok(new { transactionId = transaction.TransactionID, order });
             }
             catch (InvalidOperationException ex)
@@ -72,10 +81,25 @@ namespace BookLibwithSub.API.Controllers
             if (userIdOpt == null)
                 return Unauthorized(new { message = "Invalid token. Please login again." });
 
+            var userId = userIdOpt.Value;
+
             try
             {
-                var transaction = await _subscriptionService.RenewAsync(userIdOpt.Value);
-                var order = await _zaloPayService.CreateOrderAsync(transaction.TransactionID, userIdOpt.Value);
+                var transaction = await _subscriptionService.RenewAsync(userId);
+
+                var order = await _zaloPayService.CreateOrderAsync(transaction.TransactionID, userId);
+
+                var subId = transaction.SubscriptionID
+                    ?? throw new InvalidOperationException("Transaction is not linked to a subscription.");
+
+                var subWithPlan = await _subscriptionRepo.GetByIdWithPlanAsync(subId);
+                if (subWithPlan?.SubscriptionPlan != null)
+                {
+                    var nowUtc = DateTime.UtcNow;
+                    var endUtc = nowUtc.AddDays(subWithPlan.SubscriptionPlan.DurationDays);
+                    await _subscriptionRepo.ActivateAsync(subWithPlan.SubscriptionID, nowUtc, endUtc);
+                }
+
                 return Ok(new { transactionId = transaction.TransactionID, order });
             }
             catch (InvalidOperationException ex)

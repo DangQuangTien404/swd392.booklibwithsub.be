@@ -41,6 +41,24 @@ namespace BookLibwithSub.Repo.repository
             return Task.CompletedTask;
         }
 
+        public async Task<bool> HasActiveLoansAsync(int bookId)
+        {
+            var hasActive = await _db.LoanItems
+                .AsNoTracking()
+                .Include(li => li.Loan)
+                .AnyAsync(li =>
+                    li.BookID == bookId &&
+                    (
+                        (li.Loan != null && li.Loan.ReturnDate == null) ||
+                        (li.Status != null &&
+                         li.Status.ToLower() != "returned" &&
+                         li.Status.ToLower() != "return")
+                    )
+                );
+
+            return hasActive;
+        }
+
         public Task SaveAsync() => _db.SaveChangesAsync();
     }
 }

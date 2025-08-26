@@ -1,12 +1,13 @@
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Threading.Tasks;
+using BookLibwithSub.Service.Constants;
 using BookLibwithSub.Service.Interfaces;
 using BookLibwithSub.Service.Models;
 using BookLibwithSub.Service.Models.User;
-using BookLibwithSub.Service.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace BookLibwithSub.API.Controllers
 {
@@ -20,7 +21,6 @@ namespace BookLibwithSub.API.Controllers
         {
             _authService = authService;
         }
-
 
         [HttpPost("register")]
         [AllowAnonymous] 
@@ -76,45 +76,20 @@ namespace BookLibwithSub.API.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
-
-        [HttpPut("users/{id:int}")]
-        [Authorize]
-        public async Task<IActionResult> UpdateAccount(int id, [FromBody] UpdateUserRequest request)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-            if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
-            if (userId != id && !User.IsInRole(Roles.Admin)) return Forbid();
-
-            try
-            {
-                await _authService.UpdateAccountAsync(id, request);
-                return NoContent();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return NotFound(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
         [HttpDelete("users/{id:int}")]
         [Authorize]
         public async Task<IActionResult> DeleteAccount(int id)
         {
-            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+                           ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(userIdClaim, out var userId)) return Unauthorized();
+
             if (userId != id && !User.IsInRole(Roles.Admin)) return Forbid();
 
             try
             {
                 await _authService.DeleteAccountAsync(id);
-                return NoContent();
+                return Ok(new { message = $"User with ID {id} deleted successfully." });
             }
             catch (InvalidOperationException ex)
             {

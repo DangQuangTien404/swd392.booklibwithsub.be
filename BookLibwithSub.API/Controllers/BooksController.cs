@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using BookLibwithSub.Repo.Entities;
 using BookLibwithSub.Service.DTOs;
 using BookLibwithSub.Service.Interfaces;
@@ -16,9 +17,7 @@ namespace BookLibwithSub.API.Controllers
 
         public BooksController(IBookService svc) => _svc = svc;
 
-        // 1) Add new book (image via link)
         [HttpPost]
-
         public async Task<IActionResult> Add([FromBody] BookCreateDto dto)
         {
             if (dto == null) return BadRequest();
@@ -54,9 +53,7 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        // 2) Change book
         [HttpPut("{id:int}")]
-
         public async Task<IActionResult> Change([FromRoute] int id, [FromBody] BookUpdateDto dto)
         {
             if (dto == null) return BadRequest();
@@ -76,7 +73,7 @@ namespace BookLibwithSub.API.Controllers
             try
             {
                 var result = await _svc.UpdateAsync(id, updated);
-                if (result == null) return NotFound();
+                if (result == null) return NotFound(new { message = $"Book with ID {id} not found." });
                 return Ok(Shape(result));
             }
             catch (System.InvalidOperationException ex) when (ex.Message.Contains("ISBN"))
@@ -89,17 +86,14 @@ namespace BookLibwithSub.API.Controllers
             }
         }
 
-        // 3) Get book by ID
         [HttpGet("{id:int}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetById([FromRoute] int id)
         {
             var b = await _svc.GetByIdAsync(id);
-            return b == null ? NotFound() : Ok(Shape(b));
+            return b == null ? NotFound(new { message = $"Book with ID {id} not found." }) : Ok(Shape(b));
         }
 
-        // 4) Get books sorted by PublishedYear (replaces old "Get all")
-        //    /api/books/sorted?order=asc   (default: desc)
         [HttpGet("sorted")]
         [AllowAnonymous]
         public async Task<IActionResult> GetSorted([FromQuery] string? order = "desc")
@@ -112,16 +106,23 @@ namespace BookLibwithSub.API.Controllers
             return Ok(sorted.Select(Shape));
         }
 
-        // 5) Delete book
         [HttpDelete("{id:int}")]
-
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            var ok = await _svc.DeleteAsync(id);
-            return ok ? NoContent() : NotFound();
+            try
+            {
+                var deleted = await _svc.DeleteAsync(id);
+                if (!deleted)
+                    return NotFound(new { message = $"Book with ID {id} not found." });
+
+                return Ok(new { message = $"Book with ID {id} deleted successfully." });
+            }
+            catch (System.InvalidOperationException ex)
+            {
+                return StatusCode(StatusCodes.Status409Conflict, new { message = ex.Message });
+            }
         }
 
-        // response shaping
         private static object Shape(Book b) => new
         {
             id = b.BookID,

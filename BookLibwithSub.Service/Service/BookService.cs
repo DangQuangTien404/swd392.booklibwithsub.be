@@ -17,7 +17,6 @@ namespace BookLibwithSub.Service.Service
 
         public async Task<Book> CreateAsync(Book entity)
         {
-            // business validations
             if (await _repo.ExistsByIsbnAsync(entity.ISBN))
                 throw new System.InvalidOperationException("ISBN already exists");
 
@@ -49,7 +48,7 @@ namespace BookLibwithSub.Service.Service
             existing.PublishedYear = updated.PublishedYear;
             existing.TotalCopies = updated.TotalCopies;
             existing.AvailableCopies = updated.AvailableCopies;
-            existing.CoverImageUrl = updated.CoverImageUrl; // URL only
+            existing.CoverImageUrl = updated.CoverImageUrl;
 
             await _repo.UpdateAsync(existing);
             await _repo.SaveAsync();
@@ -60,6 +59,14 @@ namespace BookLibwithSub.Service.Service
         {
             var existing = await _repo.GetByIdAsync(id);
             if (existing == null) return false;
+
+            // block delete if this book is still involved in unreturned loans
+            var hasActiveLoans = await _repo.HasActiveLoansAsync(id);
+            if (hasActiveLoans)
+                throw new System.InvalidOperationException(
+                    "Book cannot be deleted because it is currently borrowed or has unreturned loan items."
+                );
+
             await _repo.DeleteAsync(existing);
             await _repo.SaveAsync();
             return true;

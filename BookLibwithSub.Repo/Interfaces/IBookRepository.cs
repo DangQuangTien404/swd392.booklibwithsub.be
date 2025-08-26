@@ -13,5 +13,6 @@ namespace BookLibwithSub.Repo.Interfaces
         Task UpdateAsync(Book entity);
         Task DeleteAsync(Book entity);
         Task SaveAsync();
+        Task<bool> HasActiveLoansAsync(int bookId);
     }
 }
