@@ -157,8 +157,4 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapMethods("{*path}", new[] { "OPTIONS" }, () => Results.Ok());
-
-app.MapGet("/", () => "BookLibWithSub API is running");
-
 app.Run();
