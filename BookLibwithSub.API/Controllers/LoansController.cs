@@ -126,7 +126,7 @@ namespace BookLibwithSub.API.Controllers
         }
         // GET /api/Loans/all?status=Active
         [HttpGet("all")]
-        [AllowAnonymous]
+        [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> GetAllLoans([FromQuery] string? status)
         {
             var loans = await _loanService.GetAllLoansAsync(status);
