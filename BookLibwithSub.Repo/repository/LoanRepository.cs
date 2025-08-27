@@ -177,17 +177,19 @@ namespace BookLibwithSub.Repo.repository
         {
             var query = _context.Loans
                 .Include(l => l.Subscription)
-                    .ThenInclude(s => s.User)
+                    .ThenInclude(s => s.User) 
+                .Include(l => l.Subscription)
+                    .ThenInclude(s => s.SubscriptionPlan)
                 .Include(l => l.LoanItems)
                     .ThenInclude(li => li.Book)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(status))
-            {
+            if (!string.IsNullOrWhiteSpace(status))
                 query = query.Where(l => l.Status == status);
-            }
 
-            return await query.ToListAsync();
+            return await query
+                .OrderByDescending(l => l.LoanDate)
+                .ToListAsync();
         }
 
 

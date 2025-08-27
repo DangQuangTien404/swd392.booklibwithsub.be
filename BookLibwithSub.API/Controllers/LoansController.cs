@@ -124,9 +124,8 @@ namespace BookLibwithSub.API.Controllers
             var loan = await _loanService.ExtendLoanAsync(loanId, userId, request.NewDueDate, request.DaysToExtend);
             return Ok(MapLoan(loan));
         }
-        // GET /api/Loans/all?status=Active
         [HttpGet("all")]
-        [Authorize(Roles = Roles.Admin)]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAllLoans([FromQuery] string? status)
         {
             var loans = await _loanService.GetAllLoansAsync(status);
@@ -135,6 +134,8 @@ namespace BookLibwithSub.API.Controllers
             {
                 loanId = l.LoanID,
                 userId = l.Subscription?.UserID,
+                userName = l.Subscription?.User?.Username,
+                displayName = l.Subscription?.User?.FullName ?? l.Subscription?.User?.Username,
                 subscriptionId = l.SubscriptionID,
                 loanDate = l.LoanDate,
                 returnDate = l.ReturnDate,
@@ -152,5 +153,6 @@ namespace BookLibwithSub.API.Controllers
 
             return Ok(data);
         }
+
     }
 }
