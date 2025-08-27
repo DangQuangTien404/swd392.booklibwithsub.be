@@ -124,5 +124,33 @@ namespace BookLibwithSub.API.Controllers
             var loan = await _loanService.ExtendLoanAsync(loanId, userId, request.NewDueDate, request.DaysToExtend);
             return Ok(MapLoan(loan));
         }
+        // GET /api/Loans/all?status=Active
+        [HttpGet("all")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetAllLoans([FromQuery] string? status)
+        {
+            var loans = await _loanService.GetAllLoansAsync(status);
+
+            var data = loans.Select(l => new
+            {
+                loanId = l.LoanID,
+                userId = l.Subscription?.UserID,
+                subscriptionId = l.SubscriptionID,
+                loanDate = l.LoanDate,
+                returnDate = l.ReturnDate,
+                status = l.Status,
+                items = l.LoanItems.Select(i => new
+                {
+                    loanItemId = i.LoanItemID,
+                    bookId = i.BookID,
+                    bookTitle = i.Book?.Title,
+                    dueDate = i.DueDate,
+                    returnedDate = i.ReturnedDate,
+                    status = i.Status
+                })
+            });
+
+            return Ok(data);
+        }
     }
 }

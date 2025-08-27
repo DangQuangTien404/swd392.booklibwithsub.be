@@ -173,5 +173,23 @@ namespace BookLibwithSub.Repo.repository
 
             await _context.SaveChangesAsync();
         }
+        public async Task<IEnumerable<Loan>> GetAllLoansAsync(string? status)
+        {
+            var query = _context.Loans
+                .Include(l => l.Subscription)
+                    .ThenInclude(s => s.User)
+                .Include(l => l.LoanItems)
+                    .ThenInclude(li => li.Book)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(l => l.Status == status);
+            }
+
+            return await query.ToListAsync();
+        }
+
+
     }
 }

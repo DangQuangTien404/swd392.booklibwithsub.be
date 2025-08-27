@@ -15,5 +15,7 @@ namespace BookLibwithSub.Repo.Interfaces
         Task ExtendLoanAsync(Loan loan, DateTime? newDueDate, int? daysToExtend);
         Task<List<Loan>> GetLoansByUserAsync(int userId);
         Task<List<Loan>> GetActiveLoansByUserAsync(int userId);
+        Task<IEnumerable<Loan>> GetAllLoansAsync(string? status);
+
     }
 }

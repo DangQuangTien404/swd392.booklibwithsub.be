@@ -215,5 +215,16 @@ namespace BookLibwithSub.Service.Service
 
         public Task<IEnumerable<Loan>> GetActiveLoansAsync(int userId)
             => _loanRepo.GetActiveLoansByUserAsync(userId).ContinueWith(t => (IEnumerable<Loan>)t.Result);
+        public async Task<IEnumerable<Loan>> GetAllLoansAsync(string? status)
+        {
+            var loans = await _loanRepo.GetAllLoansAsync(status);
+
+            if (!string.IsNullOrEmpty(status))
+                loans = loans.Where(l => l.Status.Equals(status, StringComparison.OrdinalIgnoreCase));
+
+            return loans;
+        }
+
+
     }
 }
